@@ -1,0 +1,32 @@
+{
+  "name": "@flxbl-io/sf-autopilot",
+  "version": "0.1.0",
+  "description": "Experimental: prove a manual Salesforce Setup step was done, from the Setup Audit Trail, or do it in the browser. Jev judges and chooses; Playwright executes.",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "bin": {
+    "sf-autopilot": "dist/src/cli.js"
+  },
+  "exports": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist/src",
+    "recipes",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "npm run build && node --test \"dist/test/**/*.test.js\""
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "typescript": "7.0.2"
+  }
+}

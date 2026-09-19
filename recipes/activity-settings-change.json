@@ -1,0 +1,26 @@
+{
+  "id": "activity-settings-change",
+  "title": "Change an Activity Settings option",
+  "when": "The step turns one named option on or off on the Activity Settings page, such as letting users relate multiple contacts to tasks and events (Shared Activities), activity reminders, or recurring events. It is not creating a task or event, and not editing an activity page layout.",
+  "startPath": "/lightning/setup/HomeActivitiesSetupPage/home",
+  "steps": [
+    "In the embedded Activity Settings page, find the checkbox whose row text matches the option the step names. These checkboxes have no labels of their own; each is named by the text of its row.",
+    "Tick or untick it to match what the step asks. Leave every other option alone.",
+    "Click Submit. This page has no read-only view, and Submit returns the browser to Setup Home. That is expected, not an error."
+  ],
+  "doneWhen": "After submitting, Activity Settings shows the named option in the requested state.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 2 actions, 27 s. The run was ended by the Setup Audit Trail itself: Salesforce recorded 'Changed Show Event Details on Multi-User Calendar View from off to on' and Jev read it at p=0.96; a fresh session then showed the box ticked. An earlier trial turned on Shared Activities correctly (audit: 'Changed Shared Activities from off to on') but ended 'unverified', because Submit lands on Setup Home and the page reviewer could not see the setting. That is why the audit trail can now end a run."
+    }
+  ],
+  "trial": {
+    "step": "In Activity Settings, turn on 'Show Event Details on Multi-User Calendar View'."
+  },
+  "notes": "Browserforce covers this as activity-settings. Each option writes its own audit action (superCalendarViewOffOn, manyWhoPreferenceOffOn, ...), so no single audit code is named here; Jev's reading of the trail is the check. These checkboxes have no labels, and are named by their row. Enabling Shared Activities on an org with many activities takes Salesforce up to 48 hours to finish."
+}

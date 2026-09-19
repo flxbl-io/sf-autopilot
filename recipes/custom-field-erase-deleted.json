@@ -1,0 +1,28 @@
+{
+  "id": "custom-field-erase-deleted",
+  "title": "Permanently erase a deleted custom field",
+  "when": "The step asks to permanently erase a custom field that was already deleted and is waiting in an object's Deleted Fields list, to free its API name or a field-count slot. It is not deleting a live field, and it is not undeleting one.",
+  "startPath": "/lightning/setup/ObjectManager/home",
+  "steps": [
+    "In Object Manager, click the object the step names.",
+    "In the object's sidebar, click 'Fields & Relationships', then click the 'Deleted Fields' button.",
+    "In the row for the named field, click 'Erase'. Click only that one row's Erase.",
+    "Salesforce asks for confirmation: tick 'Yes, I want to permanently delete the custom field', then click 'Delete'."
+  ],
+  "doneWhen": "The object's Deleted Fields list no longer shows the named field.",
+  "destructive": true,
+  "effect": "state",
+  "idea": null,
+  "audit": "hardDeletedCF",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 6 actions, 43 s, run with --allow-destructive: Account, Fields & Relationships, Deleted Fields, the row's Erase (p=0.98), the 'Yes, I want to permanently delete' box, Delete. Ended by the Setup Audit Trail: Salesforce recorded 'Permanently deleted custom field Autopilot Trial Field', Jev p=0.95. It failed three times first, none of them a wrong choice: Object Manager draws its content after its sidebar settles, so early looks saw five controls; then a rule meant for saved settings pages reopened the start path in the middle of the confirmation."
+    }
+  ],
+  "notes": "The field's data is unrecoverable afterwards, so the run stops for a person unless --allow-destructive is given. The trial needs a custom field deployed and then deleted first. Pure Lightning pages, an embedded Classic list, and a confirmation dialog.",
+  "trial": {
+    "step": "Permanently erase the deleted custom field Autopilot Trial Field from the Account object."
+  }
+}

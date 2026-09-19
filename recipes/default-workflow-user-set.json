@@ -1,0 +1,27 @@
+{
+  "id": "default-workflow-user-set",
+  "title": "Set the default workflow user",
+  "when": "The step asks to set or change the Default Workflow User on the Process Automation Settings page: the user that automation runs as when the triggering user is inactive. It is not activating a flow and not assigning a permission.",
+  "startPath": "/lightning/setup/WorkflowSettings/home",
+  "steps": [
+    "In the embedded Process Automation Settings page, type the user's full name into the 'Default Workflow User' field, replacing what is there.",
+    "Click Save. This page has no read-only view: it is always an editable form, and Save returns the browser to Setup Home. That is expected, not an error.",
+    "Open Process Automation Settings again to see the saved value."
+  ],
+  "doneWhen": "After saving and opening Process Automation Settings again, the Default Workflow User field holds the requested user.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "audit": "changedDefaultWorkflowUser",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 3 actions, 19 s, reviewer confirmed, held in a fresh session. Confirmed without any model: the Setup Audit Trail recorded 'Changed Default Workflow User from User User to Integration User'. Jev, shown that trail, gave p=0.98 for this step and p=0.03 for the same step naming a different user."
+    }
+  ],
+  "trial": {
+    "step": "Set the default workflow user to Integration User."
+  },
+  "notes": "The trial sets it to Integration User so the change is a real one. Saving this page also writes two unrelated audit entries every time (flowMetricsManageFlowOnlyOff, changedOrgWideEmailAddress), whether or not those settings changed."
+}

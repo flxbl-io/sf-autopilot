@@ -1,0 +1,435 @@
+{
+  "note": "The Setup Audit Trail of a throwaway scratch org on 2026-09-19 (UTC), as SOQL returned it, oldest first. Every username is replaced by user@example.com. Nothing else is altered. Read by scripts/audit-eval.mjs --mode snapshot.",
+  "org": "sf-autopilot-test",
+  "capturedAt": "2026-09-19T05:34:00.000Z",
+  "now": "2026-09-19T06:00:00.000Z",
+  "entries": [
+    {
+      "at": "2026-09-19T00:00:33.000+0000",
+      "action": "value_MAX_STREAMING_TOPICS_PROV",
+      "section": null,
+      "display": "Max number of streaming topics",
+      "by": null
+    },
+    {
+      "at": "2026-09-19T00:00:36.000+0000",
+      "action": "value_MAX_COURTESY_FULL_SANDBOXES",
+      "section": null,
+      "display": "Organization setup action: value_MAX_COURTESY_FULL_SANDBOXES has changed from 0 to 0",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:00:45.000+0000",
+      "action": "conversationZoomPrefOnOff",
+      "section": null,
+      "display": "Organization setup action: conversationZoomPrefOnOff has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:00:46.000+0000",
+      "action": "devopsTestingPrefOnOff",
+      "section": null,
+      "display": "Organization setup action: devopsTestingPrefOnOff has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:00:47.000+0000",
+      "action": "aLMDevopsCorePrefOnOff",
+      "section": null,
+      "display": "Organization setup action: aLMDevopsCorePrefOnOff has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:00:48.000+0000",
+      "action": "salesforceInboxReadReceiptsOnOff",
+      "section": null,
+      "display": "Organization setup action: salesforceInboxReadReceiptsOnOff has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:01:01.000+0000",
+      "action": "s1EncryptedStoragePref2OnOff",
+      "section": null,
+      "display": "Organization setup action: s1EncryptedStoragePref2OnOff has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:01:06.000+0000",
+      "action": "changedpassword",
+      "section": "Manage Users",
+      "display": "Set new password for user User User",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:01:13.000+0000",
+      "action": "createdCustEnt",
+      "section": "Custom Objects",
+      "display": "Created custom object: Sfpowerscripts Artifact 2",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:01:14.000+0000",
+      "action": "createdCFCustom",
+      "section": "Custom Objects",
+      "display": "Created custom field Version (Text) on Sfpowerscripts Artifact 2",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:01:14.000+0000",
+      "action": "createdCFCustom",
+      "section": "Custom Objects",
+      "display": "Created custom field Tag (Text) on Sfpowerscripts Artifact 2",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:01:14.000+0000",
+      "action": "createdCFCustom",
+      "section": "Custom Objects",
+      "display": "Created custom field Commit Id (Text) on Sfpowerscripts Artifact 2",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:01:28.000+0000",
+      "action": "installedpackagingapp",
+      "section": "Custom Apps",
+      "display": "Installed AppExchange package: sfpowerscripts-artifact",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T00:01:28.000+0000",
+      "action": "package2VersionUnlockedInstall",
+      "section": "Second Generation Package Version",
+      "display": " Installed Unlocked package: \"sfpowerscripts-artifact\" version \"2.0.0\"",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T02:15:33.000+0000",
+      "action": "sharedContactsOffOn",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from off to on",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T02:15:34.000+0000",
+      "action": "SharedContactsReadyOffOn",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Enabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T02:55:16.000+0000",
+      "action": "SharedContactsReadyOnOff",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Disabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T02:55:16.000+0000",
+      "action": "sharedContactsOnOff",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from on to off",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T02:57:43.000+0000",
+      "action": "sharedContactsOffOn",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from off to on",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T02:57:44.000+0000",
+      "action": "SharedContactsReadyOffOn",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Enabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T02:58:20.000+0000",
+      "action": "sharedContactsOnOff",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from on to off",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T02:58:20.000+0000",
+      "action": "SharedContactsReadyOnOff",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Disabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:03:32.000+0000",
+      "action": "sharedContactsOffOn",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from off to on",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:03:33.000+0000",
+      "action": "SharedContactsReadyOffOn",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Enabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:04:13.000+0000",
+      "action": "SharedContactsReadyOnOff",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Disabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:04:13.000+0000",
+      "action": "sharedContactsOnOff",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from on to off",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:07:45.000+0000",
+      "action": "sharedContactsOffOn",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from off to on",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:07:46.000+0000",
+      "action": "SharedContactsReadyOffOn",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Enabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:08:35.000+0000",
+      "action": "SharedContactsReadyOnOff",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Disabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:08:35.000+0000",
+      "action": "sharedContactsOnOff",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from on to off",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:10:44.000+0000",
+      "action": "sharedContactsOffOn",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from off to on",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:10:45.000+0000",
+      "action": "SharedContactsReadyOffOn",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Enabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:11:23.000+0000",
+      "action": "sharedContactsOnOff",
+      "section": "Sharing Defaults",
+      "display": "Changed Allow users to relate a contact to multiple accounts from on to off",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:11:24.000+0000",
+      "action": "SharedContactsReadyOnOff",
+      "section": "Sharing Defaults",
+      "display": "Contacts to Multiple Accounts Disabled",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:47:44.000+0000",
+      "action": "sendEmailAccessControl",
+      "section": "Email Administration",
+      "display": "Changed Access to Send Email level from All email to System email only ",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T03:50:24.000+0000",
+      "action": "sendEmailAccessControl",
+      "section": "Email Administration",
+      "display": "Changed Access to Send Email level from System email only to All email ",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:06:02.000+0000",
+      "action": "createdApexClass",
+      "section": "Apex Class",
+      "display": "Created AutopilotTrial Apex Class code",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:07:08.000+0000",
+      "action": "insertCertificate",
+      "section": "Certificate and Key Management",
+      "display": "Created Certificate Autopilot Trial Cert",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:09:15.000+0000",
+      "action": "flowMetricsManageFlowOnlyOff",
+      "section": null,
+      "display": "Disabled “Users require the Manage Flow permission to view all Automation Home charts”",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:09:53.000+0000",
+      "action": "orgFiscalYearStartMonth",
+      "section": "Company Profile",
+      "display": "Changed fiscal year start month from 1 to 7",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:13:13.000+0000",
+      "action": "oweaCreated",
+      "section": "Email Administration",
+      "display": "Added autopilot-trial@example.com with Purpose User Selection in Organization-Wide Addresses",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:19:55.000+0000",
+      "action": "changedOrganizationTimezone",
+      "section": "Company Information",
+      "display": "Changed Default Organization Time Zone from (GMT+10:00) Australian Eastern Standard Time (Australia/Sydney) to (GMT+10:00) Australian Eastern Standard Time (Australia/Brisbane)",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:20:31.000+0000",
+      "action": "flowMetricsManageFlowOnlyOff",
+      "section": null,
+      "display": "Disabled “Users require the Manage Flow permission to view all Automation Home charts”",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:20:31.000+0000",
+      "action": "changedOrgWideEmailAddress",
+      "section": null,
+      "display": "Organization setup action: changedOrgWideEmailAddress has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:20:31.000+0000",
+      "action": "changedDefaultWorkflowUser",
+      "section": "Process Automation Settings",
+      "display": "Changed Default Workflow User from User User to Integration User",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:21:14.000+0000",
+      "action": "orgFiscalYearStartMonth",
+      "section": "Company Profile",
+      "display": "Changed fiscal year start month from 7 to 4",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:22:10.000+0000",
+      "action": "updateIdp",
+      "section": "Identity Provider",
+      "display": "Changed the Identity Provider Certificate from null to Autopilot Trial Cert",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:25:41.000+0000",
+      "action": "recalcSharingRuleStart",
+      "section": "Sharing Rules",
+      "display": "Initiated sharing rule recalculation: Lead",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:25:42.000+0000",
+      "action": "recalcSharingRuleComplete",
+      "section": "Sharing Rules",
+      "display": "Completed sharing rule recalculation: Lead",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:35:57.000+0000",
+      "action": "createdCF",
+      "section": "Customize Accounts",
+      "display": "Created custom field: Autopilot Trial Field (Text)",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:36:05.000+0000",
+      "action": "deletedCF",
+      "section": "Customize Accounts",
+      "display": "Deleted custom field Autopilot Trial Field",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:36:42.000+0000",
+      "action": "overridegrantaccessenabledoff",
+      "section": "Manage Users",
+      "display": "Changed Administrators Can Log in as Any User from off to on",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:37:30.000+0000",
+      "action": "manyWhoPreferenceOffOn",
+      "section": null,
+      "display": "Changed Shared Activities from off to on.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:37:31.000+0000",
+      "action": "ManyWhoReadyOffOn",
+      "section": null,
+      "display": "Changed Shared Activities Data Upgraded from off to on.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:48:36.000+0000",
+      "action": "superCalendarViewOffOn",
+      "section": null,
+      "display": "Changed Show Event Details on Multi-User Calendar View from off to on",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:51:02.000+0000",
+      "action": "reportEscapeCharsPrefOffOn",
+      "section": null,
+      "display": "Organization setup action: reportEscapeCharsPrefOffOn has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T04:51:49.000+0000",
+      "action": "dxGlobalTermsAcceptedOffOn",
+      "section": null,
+      "display": "Organization setup action: dxGlobalTermsAcceptedOffOn has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T05:04:46.000+0000",
+      "action": "reportEscapeCharsPrefOnOff",
+      "section": null,
+      "display": "Organization setup action: reportEscapeCharsPrefOnOff has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T05:07:20.000+0000",
+      "action": "reportEscapeCharsPrefOffOn",
+      "section": null,
+      "display": "Organization setup action: reportEscapeCharsPrefOffOn has changed.",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T05:21:02.000+0000",
+      "action": "hardDeletedCF",
+      "section": "Customize Accounts",
+      "display": "Permanently deleted custom field Autopilot Trial Field",
+      "by": "user@example.com"
+    },
+    {
+      "at": "2026-09-19T05:22:15.000+0000",
+      "action": "expiredAllPasswords",
+      "section": null,
+      "display": "Expired all user passwords",
+      "by": "user@example.com"
+    }
+  ]
+}

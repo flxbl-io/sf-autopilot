@@ -1,0 +1,26 @@
+{
+  "id": "sandbox-match-production-licenses",
+  "title": "Match a sandbox's licenses to production",
+  "when": "The step asks to bring a sandbox's licenses in line with production using the 'Match Production Licenses' button on Company Information, without refreshing the sandbox. It is not assigning a license to a user.",
+  "startPath": "/lightning/setup/CompanyProfileInfo/home",
+  "steps": [
+    "In the embedded Company Information page, click 'Match Production Licenses'.",
+    "Confirm when asked."
+  ],
+  "doneWhen": "The 'Match Production Licenses' button was clicked and the page responded. Salesforce emails when the match ends.",
+  "destructive": false,
+  "effect": "action",
+  "commit": "Match Production Licenses",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Unlimited Edition sandbox",
+      "outcome": "Trial step matched at p=1.00; one click on 'Match Production Licenses', 8 s, and the run ended there. Salesforce opened a window reading 'Matching licenses found for organization ... You'll receive an email after license matching is completed', which the agent followed and captured. Salesforce leaves no Setup Audit Trail entry for it, so that window is the evidence."
+    }
+  ],
+  "notes": "The button exists only in a sandbox. Cannot be undone, though it only brings licence counts in line with production.",
+  "trial": {
+    "step": "Licences changed in production - match this sandbox's licences to production."
+  }
+}

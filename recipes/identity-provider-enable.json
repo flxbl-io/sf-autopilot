@@ -1,0 +1,27 @@
+{
+  "id": "identity-provider-enable",
+  "title": "Enable Salesforce as an identity provider",
+  "when": "The step asks to switch on the org's Identity Provider feature and choose which certificate signs its SAML assertions. It is not creating a connected app, not configuring single sign-on into Salesforce, and not creating the certificate itself.",
+  "startPath": "/lightning/setup/IdpPage/home",
+  "steps": [
+    "In the embedded Identity Provider page, click 'Enable Identity Provider'.",
+    "Choose the certificate the step names in the certificate dropdown.",
+    "Click Save, and confirm if asked."
+  ],
+  "doneWhen": "The Identity Provider page shows the provider as enabled, with the chosen certificate and a Download Metadata button.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "audit": "updateIdp",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 5 actions, 22 s, reviewer confirmed, held in a fresh session. Confirmed without any model: the Setup Audit Trail recorded 'Changed the Identity Provider Certificate from null to Autopilot Trial Cert'."
+    }
+  ],
+  "trial": {
+    "step": "Enable Salesforce as an identity provider, signing with the certificate Autopilot Trial Cert."
+  },
+  "notes": "Needs the certificate to exist first: see certificate-create-self-signed."
+}

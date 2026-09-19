@@ -1,0 +1,28 @@
+{
+  "id": "fiscal-year-start-month",
+  "title": "Change the standard fiscal year start month",
+  "when": "The step asks to change which month the standard fiscal year starts in, on the Fiscal Year page. It is not enabling custom fiscal years, which cannot be undone, and not defining fiscal periods.",
+  "startPath": "/lightning/setup/ForecastFiscalYear/home",
+  "steps": [
+    "In the embedded Fiscal Year page, keep 'Standard Fiscal Year' selected.",
+    "Choose the requested month in 'Fiscal Year Start Month'.",
+    "Click Save, and accept the confirmation. This page has no read-only view: it is always an editable form, and Save returns the browser to Setup Home. That is expected, not an error.",
+    "Open Fiscal Year again to see the saved month."
+  ],
+  "doneWhen": "After saving and opening the Fiscal Year page again, Fiscal Year Start Month shows the requested month.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "audit": "orgFiscalYearStartMonth",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 3 actions, 16 s, reviewer confirmed, held in a fresh session; the native confirm() was accepted. Confirmed without any model: the Setup Audit Trail recorded 'Changed fiscal year start month from 7 to 4', and SOQL returned FiscalYearStartMonth = 4. Jev, shown that trail, gave p=0.96 for 'start in April' and p=0.04 for 'start in October'. An earlier attempt changed the org correctly but could not be confirmed, because this page is always an edit form and Save lands on Setup Home."
+    }
+  ],
+  "trial": {
+    "step": "Set the standard fiscal year to start in April."
+  },
+  "notes": "Salesforce warns that changing the fiscal year affects forecasts and quotas. On an org with forecast data that warning may trip the data-loss guard, which is the right outcome."
+}

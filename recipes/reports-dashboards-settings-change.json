@@ -1,0 +1,26 @@
+{
+  "id": "reports-dashboards-settings-change",
+  "title": "Change a Reports and Dashboards setting",
+  "when": "The step turns one named option on or off on the Reports and Dashboards Settings page, such as the enhanced user interface for reports, floating report headers, or dashboard component snapshots. It is not creating or sharing a report, and not folder sharing.",
+  "startPath": "/lightning/setup/ReportUI/home",
+  "steps": [
+    "In the Reports and Dashboards Settings page, find the checkbox whose label matches the option the step names.",
+    "Tick or untick it to match what the step asks. Leave every other option alone.",
+    "Click Save."
+  ],
+  "doneWhen": "After saving, Reports and Dashboards Settings shows the named option in the requested state.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 3 actions, 21 s, reviewer confirmed, held in a fresh session. After Save the embedded settings page disappears while the URL stays put, so the loop reopened the page to see the saved box. Salesforce recorded the change only as 'reportEscapeCharsPrefOffOn has changed', which Jev could not tie to 'Disable Formulas in Exported Reports' (p=0.03): for this page the audit trail's wording is too opaque to be the proof, and the page is."
+    }
+  ],
+  "trial": {
+    "step": "In Reports and Dashboards Settings, turn on 'Disable Formulas in Exported Reports'."
+  },
+  "notes": "Browserforce covers this as reports-and-dashboards. Which options exist depends on edition and release. Audit entries for this page are opaque codes with no readable description."
+}

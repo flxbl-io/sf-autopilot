@@ -1,0 +1,16 @@
+{
+  "id": "state-country-picklists-enable",
+  "title": "Enable state and country/territory picklists",
+  "when": "The step asks to complete the final 'enable' stage of State and Country/Territory Picklists for the org, after the values have been configured and existing data converted. It is not configuring the list of states and countries, and it is not the data scan or conversion.",
+  "startPath": "/lightning/setup/AddressCleanerOverview/home",
+  "steps": [
+    "On the State and Country/Territory Picklists page, go to the last step, 'Enable Picklists for Address Fields'.",
+    "Click 'Enable', and confirm."
+  ],
+  "doneWhen": "The page shows state and country/territory picklists as enabled.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [],
+  "notes": "Untested, and the trial showed why: on an org where the scan and conversion stages have not been completed, the page offers only Configure, Scan and Convert, and 'Enable' is not a control at all. Jev correctly answered BLOCKED. Only the last stage is covered; the stages before it are long and data-dependent."
+}

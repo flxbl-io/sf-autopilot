@@ -1,0 +1,16 @@
+{
+  "id": "person-accounts-enable",
+  "title": "Enable Person Accounts",
+  "when": "The step asks to switch on Person Accounts for the org from the Person Accounts settings page. It can never be switched off again. It is not creating a person account record and not configuring record types.",
+  "startPath": "/lightning/setup/PersonAccountSettings/home",
+  "steps": [
+    "On the Person Accounts page, tick each acknowledgement that the prerequisites are met.",
+    "Click 'Turn on Person Accounts' (or 'Enable'), and confirm."
+  ],
+  "doneWhen": "The Person Accounts page shows the feature as enabled.",
+  "destructive": true,
+  "effect": "state",
+  "idea": null,
+  "verified": [],
+  "notes": "Untested. Irreversible, and it has prerequisites a fresh org does not meet: an Account record type, Contact sharing 'Controlled by Parent', and read access to Contacts on every profile that reads Accounts."
+}

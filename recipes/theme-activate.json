@@ -1,0 +1,25 @@
+{
+  "id": "theme-activate",
+  "title": "Activate a Lightning Experience theme",
+  "when": "The step makes one named theme the active Lightning Experience theme for the org, on the Themes and Branding page. It is not creating or editing a theme, and not changing a user's personal settings.",
+  "startPath": "/lightning/setup/ThemingAndBranding/home",
+  "steps": [
+    "On the Themes and Branding page, find the row for the theme the step names.",
+    "Open that row's action menu (the arrow at the end of the row) and click 'Activate'. Use only that row's menu."
+  ],
+  "doneWhen": "The named theme's row shows it as the active theme.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 4 actions, 31 s, reviewer confirmed; a fresh session showed Lightning Lite with Active = True. A pure Lightning page with per-row action menus. Salesforce left no Setup Audit Trail entry for it, so that fresh-session read is the evidence."
+    }
+  ],
+  "trial": {
+    "step": "Activate the built-in Lightning Lite theme for the org."
+  },
+  "notes": "Browserforce covers this as lightning-experience-settings (activeThemeName). A pure Lightning page with per-row action menus."
+}

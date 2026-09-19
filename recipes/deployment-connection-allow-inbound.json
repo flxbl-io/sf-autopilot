@@ -1,0 +1,27 @@
+{
+  "id": "deployment-connection-allow-inbound",
+  "title": "Allow or stop allowing inbound change sets from another org",
+  "when": "The step authorises another org (a named sandbox or production) to send change sets to this one, or withdraws that authorisation, using 'Allow Inbound Changes' on the Deployment Settings page. It is not creating, uploading or deploying a change set.",
+  "startPath": "/lightning/setup/DeploymentSettings/home",
+  "steps": [
+    "If an 'Understanding Deployments' introduction appears, click 'Continue'.",
+    "In the embedded Deployment Settings page, click 'Edit' in the row for the org the step names. Use only that row's Edit.",
+    "Tick or untick 'Allow Inbound Changes' as the step asks.",
+    "Click Save."
+  ],
+  "doneWhen": "Deployment Settings lists the named org with the requested upload authorization: an inbound connection from it when allowed, none when not.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Unlimited Edition sandbox",
+      "outcome": "Both directions, on a sandbox with ten connections. Allow: matched p=1.00, the buildkite row's Edit chosen at p=0.96 among ten, 4 actions, 42 s, ended by the Setup Audit Trail ('Authorized inbound changes from: buildkite', Jev p=0.87). Stop allowing: 4 actions, 33 s, ended by the trail ('Deauthorized inbound changes from: buildkite', Jev p=0.93). The first attempt at stopping flipped the checkbox 24 times without saving; re-flipping a toggle is now refused. A fresh session reopens the 'Understanding Deployments' intro, so the page cannot confirm this one and the trail does."
+    }
+  ],
+  "notes": "Deployment connections exist only between a production org and its sandboxes, never in a scratch org, so this is trialled in a sandbox. Audit actions: deployConnectionAuthorized, deployConnectionDeauthorized.",
+  "trial": {
+    "step": "Allow inbound change sets from the buildkite sandbox into this org."
+  }
+}

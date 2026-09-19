@@ -1,0 +1,16 @@
+{
+  "id": "connected-app-block",
+  "title": "Block a connected app's OAuth access",
+  "when": "The step asks to block a named connected app for the whole org from the Connected Apps OAuth Usage page, ending its current sessions and refusing new ones. It is not uninstalling the app and not editing its OAuth policies.",
+  "startPath": "/lightning/setup/ConnectedAppsUsage/home",
+  "steps": [
+    "On the Connected Apps OAuth Usage page, find the row for the app the step names.",
+    "Click 'Block' in that row only, and confirm."
+  ],
+  "doneWhen": "The named app's row shows 'Unblock', meaning it is now blocked.",
+  "destructive": true,
+  "effect": "state",
+  "idea": null,
+  "verified": [],
+  "notes": "Untested on purpose: the only app in a trial org's OAuth usage list is the Salesforce CLI's own, and blocking it would cut off the session running the trial. Cuts off every user of the app at once, so it is marked destructive."
+}

@@ -1,0 +1,25 @@
+{
+  "id": "apex-compile-all-classes",
+  "title": "Compile all Apex classes",
+  "when": "The step asks to recompile every Apex class in the org, usually after a deployment or a release upgrade, using the 'Compile all classes' link on the Apex Classes page. It is not running tests, and it is not deploying or editing a class.",
+  "startPath": "/lightning/setup/ApexClasses/home",
+  "steps": [
+    "In the embedded Apex Classes page, click the 'Compile all classes' link above the list of classes. Click it once."
+  ],
+  "doneWhen": "The 'Compile all classes' link was clicked and the page responded. On a large org compilation runs for many minutes and the page hangs until it ends, so the run does not wait for a result.",
+  "destructive": false,
+  "effect": "action",
+  "commit": "Compile all classes",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; one click on 'Compile all classes', 4 s, and the run ended there without waiting for a result. Salesforce does not audit this action, and the page gives no sign that compilation started, so the delivered click is all the evidence there is. Only tried on an org with a single class."
+    }
+  ],
+  "trial": {
+    "step": "Deployment finished - compile all Apex classes."
+  },
+  "notes": "The link is only shown when the org has at least one Apex class. The run ends as soon as the click is delivered: nothing on the page says compilation has started, and on a large org it does not return for many minutes."
+}

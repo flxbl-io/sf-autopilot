@@ -1,0 +1,23 @@
+{
+  "id": "email-deliverability",
+  "title": "Set the email deliverability access level",
+  "when": "The step changes which email the org is allowed to send: the Deliverability page's 'Access to Send Email' level, one of No access, System email only, or All email. Typical after a sandbox refresh. It is not about email templates, org-wide addresses, relays, or DKIM keys.",
+  "startPath": "/lightning/setup/OrgEmailSettings/home",
+  "steps": [
+    "The Deliverability page opens directly. If it did not, type 'Deliverability' into the sidebar Quick Find and click the Deliverability link beneath it.",
+    "In the embedded Deliverability page, choose the requested level in the 'Access level' dropdown under 'Access to Send Email'.",
+    "Click Save."
+  ],
+  "doneWhen": "The page shows 'Your organization's email settings have been saved.' and the Access level dropdown shows the requested level.",
+  "destructive": false,
+  "effect": "state",
+  "idea": "https://ideas.salesforce.com/s/idea/a0B8W00000GdXD2UAN/accessing-the-email-deliverability-via-apex-code-api",
+  "audit": "sendEmailAccessControl",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "All email -> System email only -> All email. Through the recipe: 2 actions, 14 s, reviewer confirmed. Each change was confirmed by reading the dropdown in a fresh session with no model involved. The same step planned from scratch, starting at Setup Home, took 5 actions and had failed twice before Quick Find typing was fixed."
+    }
+  ]
+}

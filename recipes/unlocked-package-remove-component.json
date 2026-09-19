@@ -1,0 +1,23 @@
+{
+  "id": "unlocked-package-remove-component",
+  "title": "Remove a component from an installed unlocked package",
+  "when": "The step releases one named metadata component (a custom field, object, class, and so on) from an installed unlocked package, so the component stays in the org but is no longer owned or locked by that package. Typical when moving metadata between packages. It is not uninstalling the whole package, and it is not deleting the component from the org.",
+  "startPath": "/lightning/setup/ImportedPackage/home",
+  "steps": [
+    "On the Installed Packages page, click the name of the package the step names.",
+    "On the package detail page, click 'View Components'.",
+    "In the components table, find the row whose Component Name and Type match the component the step names, and click the 'Remove' link in that row's Action column. Click only that one row's Remove.",
+    "If a confirmation appears, confirm it."
+  ],
+  "doneWhen": "The package's components table no longer lists the named component, while the package itself is still installed.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org, package sfpowerscripts-artifact 2.0.0.1",
+      "outcome": "Released 'Commit Id' (custom field) and then 'Sfpowerscripts Artifact 2' (custom setting), one per run, reviewer confirmed; a fresh-session read of the components table showed exactly that component gone and the package still installed. The native confirm() was accepted. NOTE the first attempt, before controls carried their row's text, released two components when asked for one: all four links were labelled just 'Remove'."
+    }
+  ]
+}

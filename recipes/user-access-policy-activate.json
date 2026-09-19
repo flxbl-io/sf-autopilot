@@ -1,0 +1,16 @@
+{
+  "id": "user-access-policy-activate",
+  "title": "Activate a user access policy",
+  "when": "The step asks to activate a named User Access Policy that already exists in the org. Policies always deploy inactive, so this follows every deployment of one. It is not creating or editing the policy's criteria or its grants.",
+  "startPath": "/lightning/setup/UserAccessPolicies/home",
+  "steps": [
+    "On the User Access Policies page, open the policy the step names.",
+    "Click 'Automate Policy' (or 'Activate'), choose the trigger the step asks for, and confirm."
+  ],
+  "doneWhen": "The policy's status is shown as Active.",
+  "destructive": false,
+  "effect": "state",
+  "idea": "https://ideas.salesforce.com/s/idea/a0BHp000016LuoYMAS/deploy-user-access-policy-in-a-active-status",
+  "verified": [],
+  "notes": "Untested: a Developer Edition scratch org has no User Access Policies page at all, and a trial needs a policy already deployed. Button names are from memory. Browserforce covers this as user-access-policies."
+}

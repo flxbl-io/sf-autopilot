@@ -1,0 +1,28 @@
+{
+  "id": "org-wide-email-address-add",
+  "title": "Add an organization-wide email address",
+  "when": "The step asks to register a new organization-wide 'From' address (a display name and an email address, usable by all profiles or by named ones). It is not email deliverability, not an email relay, and not a user's own email address. Verifying the address needs someone to click a link in an email, which is outside this procedure.",
+  "startPath": "/lightning/setup/OrgWideEmailAddresses/home",
+  "steps": [
+    "In the embedded Organization-Wide Email Addresses page, click 'Add'.",
+    "Type the display name and the email address the step gives.",
+    "Choose 'Allow All Profiles to Use this From Address', unless the step names specific profiles.",
+    "Click Save."
+  ],
+  "doneWhen": "The Organization-Wide Email Addresses list shows the new display name and address, pending verification.",
+  "destructive": false,
+  "effect": "state",
+  "idea": "https://ideas.salesforce.com/s/idea/a0B8W00000GdfnPUAR/easier-method-to-update-organizationwide-email-addresses",
+  "audit": "oweaCreated",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 5 actions, 34 s, reviewer confirmed; a fresh session showed the address with status 'Verification Request Sent'. Confirmed without any model: SOQL on OrgWideEmailAddress returned 'Release Bot <autopilot-trial@example.com>'. The address stays unusable until a person clicks the emailed link."
+    }
+  ],
+  "trial": {
+    "step": "Add an organization-wide email address with display name Release Bot and address autopilot-trial@example.com, available to all profiles."
+  },
+  "notes": "Salesforce emails a verification link to the address. Until a person clicks it the address cannot be used."
+}

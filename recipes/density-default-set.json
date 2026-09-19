@@ -1,0 +1,25 @@
+{
+  "id": "density-default-set",
+  "title": "Set the org's default display density",
+  "when": "The step sets the org-wide default display density for Lightning Experience, Comfy or Compact, on the Density Settings page. It is not one user's own density preference, which they set from their profile menu.",
+  "startPath": "/lightning/setup/DensitySetup/home",
+  "steps": [
+    "On the Density Settings page, choose the density the step asks for: Comfy or Compact.",
+    "If a Save button is offered, click it. Otherwise the choice saves by itself."
+  ],
+  "doneWhen": "Density Settings shows the requested density as the selected org default.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial steps matched at p=1.00. Compact: 1 action, reviewer confirmed. Comfy: 1 action, 21 s, reviewer confirmed, and a fresh session showed Comfy selected. A pure Lightning page that saves on selection. Salesforce leaves no Setup Audit Trail entry for it. The first fresh-session check failed only because it looked before the page had drawn; a page just opened now gets a more patient look."
+    }
+  ],
+  "trial": {
+    "step": "Set the org default display density to Comfy."
+  },
+  "notes": "Browserforce covers this as density-settings. A pure Lightning page, not an embedded Classic one."
+}

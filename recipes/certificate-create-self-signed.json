@@ -1,0 +1,27 @@
+{
+  "id": "certificate-create-self-signed",
+  "title": "Create a self-signed certificate",
+  "when": "The step asks to create a new self-signed certificate in Certificate and Key Management, with a given label. The private key cannot be deployed, so every org needs it created by hand. It is not uploading a CA-signed certificate or importing a keystore, which need a file.",
+  "startPath": "/lightning/setup/CertificatesAndKeysManagement/home",
+  "steps": [
+    "In the embedded Certificate and Key Management page, click 'Create Self-Signed Certificate'.",
+    "Type the label the step gives into Label. Unique Name fills in by itself; leave it unless the step gives one.",
+    "Leave key size and the exportable-private-key option as offered, unless the step says otherwise.",
+    "Click Save."
+  ],
+  "doneWhen": "The certificate's detail page, or the certificates list, shows a self-signed certificate with the requested label.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "audit": "insertCertificate",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 3 actions, 21 s, reviewer confirmed; a fresh session showed the certificate in the list. Confirmed without any model: a Tooling API query on Certificate returned 'Autopilot Trial Cert'."
+    }
+  ],
+  "trial": {
+    "step": "Create a self-signed certificate labelled Autopilot Trial Cert."
+  }
+}

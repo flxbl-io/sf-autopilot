@@ -1,0 +1,28 @@
+{
+  "id": "sharing-rules-recalculate",
+  "title": "Recalculate sharing rules for an object",
+  "when": "The step asks to recalculate sharing rules for one named object (Account, Lead, Case, a custom object, ...) from the Sharing Settings page, typically after changing role hierarchy, groups or ownership in bulk. It is not creating or editing a sharing rule, and it is not changing organization-wide defaults.",
+  "startPath": "/lightning/setup/SecuritySharing/home",
+  "steps": [
+    "In the embedded Sharing Settings page, find the Sharing Rules section for the object the step names, for example 'Account Sharing Rules'.",
+    "Click the 'Recalculate' button in that section only. Every object has its own Recalculate button.",
+    "If a confirmation appears, confirm it."
+  ],
+  "doneWhen": "The named object's 'Recalculate' button was clicked and the page responded. Recalculation of a large object runs for hours; Salesforce emails when it ends.",
+  "destructive": false,
+  "effect": "action",
+  "commit": "Recalculate",
+  "idea": null,
+  "audit": "recalcSharingRuleStart",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; one click on the Lead row's Recalculate (p=1.00 among a dozen identical buttons), 9 s, and the run ended there without waiting. Confirmed without any model: the Setup Audit Trail recorded 'Initiated sharing rule recalculation: Lead'. The first attempt failed with max_tokens_exceeded from Jev: this page lists rules and buttons for every object. Oversized requests are now retried with the controls most relevant to the goal."
+    }
+  ],
+  "trial": {
+    "step": "Recalculate the sharing rules for Lead."
+  },
+  "notes": "Recalculation of a large object can run for hours. The recipe only starts it."
+}

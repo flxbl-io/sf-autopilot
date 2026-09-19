@@ -1,0 +1,24 @@
+{
+  "id": "account-contacts-to-multiple-accounts",
+  "title": "Let users relate a contact to multiple accounts",
+  "when": "The step turns on or off 'Allow users to relate a contact to multiple accounts' (Contacts to Multiple Accounts) on the Account Settings page. It is not the Activity Setting about relating multiple contacts to a task, and not account teams.",
+  "startPath": "/lightning/setup/AccountSettings/home",
+  "steps": [
+    "In the embedded Account Settings page, click 'Edit'.",
+    "Tick or untick 'Allow users to relate a contact to multiple accounts' as the step asks.",
+    "Click Save.",
+    "Turning it OFF deletes every indirect contact relationship. Salesforce asks you to tick 'Yes, I understand that this action permanently deletes data' and click 'Disable'; do that only when the step asks to turn it off."
+  ],
+  "doneWhen": "Account Settings, no longer in edit mode, shows 'Allow users to relate a contact to multiple accounts' in the requested state (checked or not checked, read-only).",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Planned from scratch twelve times while the agent was being debugged, each run judged by retrieving Settings:Account. In the final form: on, 3 actions, 22 s; off, stopped before Save because the page warns of permanent data loss; off with --allow-destructive, 5 actions, 28 s, through the 'I understand' dialog. Metadata flipped each time, and the Setup Audit Trail recorded sharedContactsOffOn / sharedContactsOnOff. Turning it off is where Jev first declared DONE with the confirmation still open, which is why a reviewer exists."
+    }
+  ],
+  "notes": "Browserforce covers this as relate-contact-to-multiple-accounts. Retrievable as AccountSettings.enableRelateContactToMultipleAccounts, which made it a useful test subject. Turning it off is destructive and needs --allow-destructive; turning it on does not."
+}

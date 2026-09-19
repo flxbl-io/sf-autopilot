@@ -1,0 +1,27 @@
+{
+  "id": "data-export-schedule",
+  "title": "Schedule the recurring data export",
+  "when": "The step asks to set up or change the recurring backup export of org data on the Data Export page: how often it runs, when, and which data it includes. It is not Data Loader, not a report export, and not a one-off 'Export Now'.",
+  "startPath": "/lightning/setup/DataManagementExport/home",
+  "steps": [
+    "In the embedded Data Export page, click 'Schedule Export'.",
+    "Set the frequency, start and end dates and preferred start time the step asks for, leaving the rest as offered.",
+    "Tick 'Include all data' unless the step names specific objects.",
+    "Click Save."
+  ],
+  "doneWhen": "The Data Export page shows a scheduled export with the requested frequency, and a 'next scheduled export' date.",
+  "destructive": false,
+  "effect": "state",
+  "idea": "https://ideas.salesforce.com/s/idea/a0B8W00000GdaZVUAZ/api-access-to-weekly-export-service",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 4 actions, 25 s, reviewer confirmed. A fresh session showed a saved 'Monthly Export Service' with a next scheduled export date. No model-free check exists for this page, so that fresh-session read is the evidence. Developer Edition offers monthly only; weekly is untested."
+    }
+  ],
+  "trial": {
+    "step": "Schedule the recurring data export to include all data, using the default dates."
+  },
+  "notes": "Frequency options depend on edition: weekly for Enterprise and up, monthly otherwise."
+}

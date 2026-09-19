@@ -1,0 +1,26 @@
+{
+  "id": "company-default-time-zone",
+  "title": "Change the company's default time zone",
+  "when": "The step asks to change the org-wide Default Time Zone on the Company Information page, the default given to new users. It is not changing one user's own time zone, and not business hours.",
+  "startPath": "/lightning/setup/CompanyProfileInfo/home",
+  "steps": [
+    "In the embedded Company Information page, click 'Edit'.",
+    "Choose the requested zone in the 'Default Time Zone' dropdown. It is a long list: name the option exactly as listed.",
+    "Click Save."
+  ],
+  "doneWhen": "Company Information shows the requested Default Time Zone after saving.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "audit": "changedOrganizationTimezone",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 3 actions, 16 s, reviewer confirmed, and it held in a fresh session. Confirmed without any model: the Setup Audit Trail recorded changedOrganizationTimezone, and SOQL on Organization returned TimeZoneSidKey = Australia/Brisbane. The first attempt failed: Default Locale's hundreds of options filled the control table, so the Time Zone dropdown was never offered. Long dropdowns are now one target."
+    }
+  ],
+  "trial": {
+    "step": "Change the company default time zone to Australia/Brisbane."
+  }
+}

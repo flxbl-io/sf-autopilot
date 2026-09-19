@@ -1,0 +1,26 @@
+{
+  "id": "login-access-admins-any-user",
+  "title": "Let administrators log in as any user",
+  "when": "The step turns on or off 'Administrators Can Log in as Any User' on the Login Access Policies page. It is not granting login access for one user, and not the support-organization login policies listed on the same page.",
+  "startPath": "/lightning/setup/LoginAccessPolicies/home",
+  "steps": [
+    "In the embedded Login Access Policies page, tick or untick 'Administrators Can Log in as Any User' as the step asks.",
+    "Click Save."
+  ],
+  "doneWhen": "After saving, Login Access Policies shows 'Administrators Can Log in as Any User' in the requested state.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "audit": "overridegrantaccessenabledoff",
+  "verified": [
+    {
+      "date": "2026-09-19",
+      "org": "Developer Edition scratch org",
+      "outcome": "Trial step matched at p=1.00; 4 actions, 20 s, reviewer confirmed, held in a fresh session. Confirmed without any model: the Setup Audit Trail recorded 'Changed Administrators Can Log in as Any User from off to on'. Jev, shown that trail, gave p=0.95."
+    }
+  ],
+  "trial": {
+    "step": "Allow administrators to log in as any user."
+  },
+  "notes": "Browserforce covers this as security (loginAccessPolicies). The audit action named here is the one Salesforce writes for off-to-on; turning it off may write a different one, so rely on Jev's reading for that direction."
+}
