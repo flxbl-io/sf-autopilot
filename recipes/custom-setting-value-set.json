@@ -1,0 +1,25 @@
+{
+  "id": "custom-setting-value-set",
+  "title": "Change a field on a custom setting's default organization value",
+  "when": "The step asks to change a field (usually a checkbox or a value) on a hierarchy custom setting, such as a managed package's 'Org Parameters' or 'Platform Settings', at the organization level. It is not creating a custom setting, not editing its definition or fields, and not a custom metadata type.",
+  "startPath": "/lightning/setup/CustomSettings/home",
+  "steps": [
+    "The embedded Custom Settings page lists every setting, many pages long, and has no search box. Above the list is an A-Z row of letter links: click the letter the setting's label starts with (for example 'O' for Org Parameters).",
+    "Several packages can have a setting with the same label. Pick the row whose Namespace Prefix matches the package the step names (for example 'loan'), and click 'Manage' in that row.",
+    "On the setting's page, click 'Edit' in the Default Organization Level Value section. Do not click 'New', and do not edit a profile or user level row.",
+    "Change only the field the step names, to the value it asks for.",
+    "Click Save."
+  ],
+  "doneWhen": "The setting's Default Organization Level Value section, in its read-only view, shows the named field with the requested value.",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [
+    {
+      "date": "2026-09-23",
+      "org": "a customer's full sandbox",
+      "outcome": "Recipe matched with --candidates; 5 actions, 37 s: letter 'O', Manage in the Org Parameters row with namespace loan, Edit, Production unticked, Save. Reviewer confirmed Production [Not Checked]; independently, SOQL on loan__Org_Parameters__c returned loan__Production__c = false. No Setup Audit Trail entry, as expected for custom setting data."
+    }
+  ],
+  "notes": "Proven on a real sandbox rather than by a trial: it needs a package's hierarchy custom setting a scratch org does not have. Written after a run where the agent could not find 'Org Parameters' among hundreds of managed settings: the letter row was on screen but not used. Custom setting data changes leave no Setup Audit Trail entry, so only the page reviewer can judge the result."
+}

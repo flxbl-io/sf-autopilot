@@ -24,7 +24,7 @@ list. The step's own words still supply the specifics (which level, which compon
 parameters.
 
 ```bash
-$ sf-autopilot recipes        # 21 verified, 4 candidates
+$ sf-autopilot recipes        # 23 verified, 5 candidates
 apex-compile-all-classes               verified 2026-09-19
 certificate-create-self-signed         verified 2026-09-19
 company-default-time-zone              verified 2026-09-19
@@ -79,8 +79,8 @@ saying what you saw.
 
 ## Candidates
 
-Four recipes are written but not yet run live: `connected-app-block`, `person-accounts-enable`,
-`state-country-picklists-enable`, `user-access-policy-activate`. Each says why in its `notes`.
+Five recipes are written but not yet proven live: `connected-app-block`, `connected-app-policy-edit`,
+`person-accounts-enable`, `state-country-picklists-enable`, `user-access-policy-activate`. Each says why in its `notes`.
 
 Recipes that answer an IdeaExchange request for an API:
 

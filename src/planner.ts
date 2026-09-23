@@ -14,6 +14,13 @@ export interface Plan {
   steps: string[];
   /** Visible evidence that proves completion. */
   doneWhen: string;
+  /**
+   * The step as a past-tense change to the org, for the Setup Audit Trail check. Seen live: judged against the
+   * step as written ("Go to My Domain... click Edit... then Save"), Jev gave p=0.64 to an entry that plainly
+   * recorded it; against "Microsoft SSO was added to the My Domain login page", p=0.93. Unset when absent or
+   * when it lost a value the step gives, and the step itself is judged instead.
+   */
+  outcome?: string;
   /** Set by an 'action' recipe: the label of the control that fires it. That click ends the run. */
   commit?: string;
   /** Set by a recipe: the Setup Audit Trail action Salesforce is expected to record. */
@@ -30,9 +37,23 @@ export function safeStartPath(value: unknown): string | null {
     : null;
 }
 
+/**
+ * A model rewrote the step, and a rewrite that drops "to April" is one any fiscal-year entry confirms. So the
+ * values a step spells out (quoted text, URLs, email addresses, numbers) must all survive into the outcome, or
+ * the outcome is not used. It cannot catch an unquoted value reworded; the step is then judged, as before.
+ */
+export function keepsValues(step: string, outcome: string): boolean {
+  const values = [
+    ...[...step.matchAll(/["'“‘]([^"'”’]{2,})["'”’]/g)].map((m) => m[1]),
+    ...(step.match(/https?:\/\/\S+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+|\b[\w./-]*\d[\w./-]*\b/g) ?? []),
+  ].map((v) => v.replace(/[.,;:)]+$/, '').toLowerCase().trim()).filter(Boolean);
+  const text = outcome.toLowerCase();
+  return values.every((v) => text.includes(v));
+}
+
 export async function planStep(step: string, options: LlmOptions = {}): Promise<Plan> {
   const reply = await chatJson(PLAN, JSON.stringify({ manual_step: step }), options);
-  const { executable, reason, startPath, goal, steps, doneWhen } = reply.json;
+  const { executable, reason, startPath, goal, steps, doneWhen, outcome } = reply.json;
   const valid =
     typeof executable === 'boolean' &&
     typeof reason === 'string' &&
@@ -48,6 +69,7 @@ export async function planStep(step: string, options: LlmOptions = {}): Promise<
     goal: typeof goal === 'string' ? goal.trim() : '',
     steps: Array.isArray(steps) ? (steps as string[]) : [],
     doneWhen: typeof doneWhen === 'string' ? doneWhen : '',
+    outcome: typeof outcome === 'string' && outcome.trim() && keepsValues(step, outcome) ? outcome.trim() : undefined,
     model: reply.model,
     latencyMs: reply.latencyMs,
   };

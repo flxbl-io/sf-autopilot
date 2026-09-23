@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, test } from 'node:test';
 import { chatJson, extractJson } from '../src/llm.js';
-import { planGoal, planStep, safeStartPath } from '../src/planner.js';
+import { keepsValues, planGoal, planStep, safeStartPath } from '../src/planner.js';
 import { fieldText } from '../src/text.js';
 import type { Post } from '../src/types.js';
 
@@ -94,6 +94,20 @@ test('a start path a model wrote is only ever a same-org Lightning path', async 
     '/lightning/setup/ObjectManager/Account/FieldsAndRelationships/view');
   const plan = await planStep('x', { post: replying(JSON.stringify({ ...PLAN, startPath: 'https://evil.example/' })) });
   assert.equal(plan.startPath, null);
+});
+
+test('the outcome the audit trail is judged against keeps every value the step spells out', async () => {
+  const step = "Set the Partner API URL to https://partner-dev.example.com/queue/ticket?version=OLP and the level to 'System Email Only'.";
+  const kept = await planStep(step, { post: replying(JSON.stringify({ ...PLAN,
+    outcome: "The Partner API URL was set to https://partner-dev.example.com/queue/ticket?version=OLP and the level to System Email Only." })) });
+  assert.match(kept.outcome ?? '', /^The Partner API URL was set/);
+  for (const lossy of ['The Partner API URL was updated.', 'The URL was set to https://partner-dev.example.com and the level to System Email Only.']) {
+    const plan = await planStep(step, { post: replying(JSON.stringify({ ...PLAN, outcome: lossy })) });
+    assert.equal(plan.outcome, undefined, lossy);
+  }
+  assert.equal((await planStep('x', { post: replying(JSON.stringify(PLAN)) })).outcome, undefined, 'absent is fine');
+  assert.ok(keepsValues('Update the username to service.ai@example.com.', 'The username was changed to service.ai@example.com.'));
+  assert.ok(!keepsValues('Set batch size to 500.', 'Batch size was changed.'));
 });
 
 test('a step that is not a browser step is reported, not forced', async () => {

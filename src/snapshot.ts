@@ -165,11 +165,22 @@ export function readFrame(): FrameState | null {
     // safer click, and the Setup tree alone would otherwise double the table.
     if (['gridcell', 'treeitem'].includes(rname) && e.querySelector('a[href],button,[role="button"],[role="link"]')) continue;
     let label = name(e);
+    // A Lightning datatable makes every cell focusable for keyboard navigation and draws its text in a shadow root,
+    // so each cell reads as an unnamed "gridcell". Seen live on Named Credentials: four per row, the table filled up
+    // at the fortieth record, and the one the step named was never offered. The row's real controls (its link,
+    // "Show actions") are read on their own; an unnamed cell adds nothing a model could choose between.
+    if (rname === 'gridcell' && !label) continue;
     // A <select> with no accessible name would otherwise be named by its own options. Classic Setup keeps the
     // field's label in the cell to its left, with no <label for>, so look there.
     if (e.tagName === 'SELECT' && !(e.getAttribute('aria-label') || e.getAttribute('aria-labelledby') || e.labels?.length || e.getAttribute('title'))) {
       const cell = e.closest('td,th')?.previousElementSibling;
       label = (cell?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80) || 'dropdown';
+    }
+    // The same holds for a Classic text field. Seen live: the connected app's "Run As" lookup was offered as
+    // "textbox", and only luck put the user's name in the right one.
+    if (!label && ['textbox', 'searchbox', 'spinbutton'].includes(rname)) {
+      const cell = e.closest('td,th')?.previousElementSibling;
+      label = (cell?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80);
     }
     // Classic settings pages often give a checkbox no label at all: the words sit in the same table row.
     if (toggle(e) && !label) label = (e.closest('tr,li')?.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 120);
@@ -212,6 +223,19 @@ export function readFrame(): FrameState | null {
       actions.push({ ...base, kind: editable ? 'fill' : 'click', value });
       if (editable) actions.push({ ...base, kind: 'click', value, label: 'Open ' + base.label });
     }
+  }
+
+  // Classic list pages (Custom Settings, Manage Connected Apps) have no search box, only an A-Z row of one-letter
+  // links above the list. Seen live: the letter "L" was on screen while the record was off the first page, and Jev,
+  // offered a bare link called "L", gave up. A letter in such a row says what it does.
+  for (const a of actions) {
+    if (a.kind !== 'click' || !/^([A-Z]|Other|All)$/.test(a.label)) continue;
+    const row = owners.get(a.node)?.parentElement?.closest('div,td,ul,span,p');
+    const letters = row ? [...row.querySelectorAll('a')].filter((l: any) => /^[A-Z]$/.test((l.textContent || '').trim())).length : 0;
+    if (letters < 20) continue;
+    a.label = a.label === 'All' ? 'All (list filter: show every record)'
+      : a.label === 'Other' ? 'Other (list filter: records whose name starts with a digit or symbol)'
+      : `${a.label} (list filter: show only records whose name starts with ${a.label})`;
   }
 
   // A table of records has one "Remove" / "Edit" / "Del" per row, all labelled alike. Seen live: asked to release

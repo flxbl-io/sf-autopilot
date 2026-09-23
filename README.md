@@ -63,7 +63,7 @@ manual step ──► recipe, or ──► ┌───────────�
 - **Jev** chooses every click, from controls that really exist on the page. It cannot invent a selector or code.
 - **Playwright** reads Lightning and Classic Setup pages, and clicks.
 - **The run is judged by the audit trail**, not by the agent's own word.
-- **21 tested [recipes](docs/recipes.md)** cover known procedures, so nothing is guessed where a path is known.
+- **23 tested [recipes](docs/recipes.md)** cover known procedures, so nothing is guessed where a path is known.
 
 If a step has Metadata API coverage, deploy it instead. This is for what is left.
 

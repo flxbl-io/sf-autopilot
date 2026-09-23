@@ -156,6 +156,37 @@ test('when Jev says the request is too large, it is retried with the controls mo
   assert.equal(decision.choice, 'e201', 'the far-down control that matches the goal survived the cut, and maps to the right action');
 });
 
+test('a page longer than the table reaches Jev as the 250 controls most relevant to the goal', async () => {
+  // Seen live: Named Credentials, alphabetical; a cut by position ended one record before "Partner API".
+  const p = page();
+  p.actions = [
+    ...Array.from({ length: 300 }, (_, i) => ({ id: `e${i + 1}`, kind: 'click' as const, label: `Show actions (row: Credential ${i})`, role: 'button', node: `0:${i}` })),
+    { id: 'e301', kind: 'click', label: 'Show actions (row: Partner API Partner API External Credential)', role: 'button', node: '0:900' },
+    { id: 'wait', kind: 'wait', label: 'Wait for the page to update' },
+  ];
+  const sizes: number[] = [];
+  const decision = await choose(p, 'Edit the named credential Partner API.', [], {
+    apiKey: 'test',
+    post: async (_url, _key, body: any) => {
+      const ids = Object.keys(body.questions.click_target.criteria);
+      sizes.push(ids.length);
+      const pick = ids.find((id) => body.questions.click_target.criteria[id].element.includes('Partner API'))!;
+      return { model: 'test', answers: { operation: answer(Object.keys(body.questions.operation.criteria), 'CLICK'), click_target: answer(ids, pick) } };
+    },
+  });
+  assert.deepEqual(sizes, [250]);
+  assert.equal(decision.choice, 'e301');
+});
+
+test('in a tie, the embedded Setup page outranks the sidebar around it', () => {
+  const kept = mostRelevant([
+    { id: 'e1', kind: 'click', label: 'Sidebar link', node: '0:1', in_viewport: true },
+    { id: 'e2', kind: 'click', label: 'Manage (in frame: Custom Settings)', node: '1:2', in_viewport: false },
+    { id: 'wait', kind: 'wait', label: 'Wait' },
+  ], 'Turn off Production', 1);
+  assert.deepEqual(kept.map((a) => a.id), ['e2', 'wait']);
+});
+
 test('relevance keeps goal-matching controls, then on-screen ones, in page order, and never drops WAIT', () => {
   const kept = mostRelevant([
     { id: 'e1', kind: 'click', label: 'Nav A', node: '0:1', in_viewport: false },

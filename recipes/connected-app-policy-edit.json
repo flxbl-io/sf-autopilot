@@ -1,0 +1,18 @@
+{
+  "id": "connected-app-policy-edit",
+  "title": "Edit a connected app's OAuth policies",
+  "when": "The step asks to change a policy of an installed connected app from Manage Connected Apps: for example the Client Credentials Flow 'Run As' user, permitted users, IP relaxation or refresh token policy. It is not viewing or regenerating its consumer key and secret, not blocking it from OAuth usage, and not creating an app.",
+  "startPath": "/lightning/setup/ConnectedApplication/home",
+  "steps": [
+    "The embedded Connected Apps list has no search box and may run to several pages. Above it is an A-Z row of letter links: click the letter the app's name starts with (for example 'L' for LIXI Integration).",
+    "In the app's row, click 'Edit'. This opens its policies for editing.",
+    "Change only the policy the step names. For 'Run As' under Client Credentials Flow, type the user's full name into that field.",
+    "Click Save."
+  ],
+  "doneWhen": "The app's detail page, after saving, shows the named policy with the requested value (for Client Credentials Flow, 'Run As' shows the requested user).",
+  "destructive": false,
+  "effect": "state",
+  "idea": null,
+  "verified": [],
+  "notes": "Untested by a trial: it needs a record a scratch org does not have (a package's custom setting, an installed connected app, an existing named credential), so it is proven on a real sandbox instead. Written from an a customer sandbox run where the agent reached Manage Connected Apps but the app was off the first page (A-C shown). The Classic 'Run As' field is a lookup: a full, exact name resolves on Save; a partial one fails with an error the reviewer will see. Tried once on the a customer sandbox (2026-09-23): the letter and Edit steps worked and reached the Run As field, but Salesforce refused the user ('Invalid Execution User'), so the procedure is not yet proven end to end."
+}

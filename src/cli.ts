@@ -78,7 +78,8 @@ function printPlan(plan: Plan): void {
   console.log(`  start: ${plan.startPath ?? 'Setup Home, then Quick Find'}`);
   console.log(`  goal:  ${plan.goal}`);
   plan.steps.forEach((s, i) => console.log(`  ${i + 1}. ${s}`));
-  console.log(`  done when: ${plan.doneWhen}\n`);
+  console.log(`  done when: ${plan.doneWhen}`);
+  console.log(`  audited as: ${plan.outcome ?? '(the step as written)'}\n`);
 }
 
 async function main(): Promise<void> {
@@ -183,13 +184,15 @@ async function main(): Promise<void> {
     if (await browser.ensureRendered(SETUP_HOME)) console.log(`  (${startPath} did not render; starting from Setup Home instead)\n`);
 
     const began = new Date();
+    // The audit trail records results, not clicks: judge the step's outcome when the planner wrote one.
+    const claim = plan?.outcome ?? step;
     const output = `artifacts/${began.toISOString().replace(/[-:]|\.\d+/g, '')}`;
     const result = await run(browser, `${plan ? planGoal(plan) : step}\n\n${SALESFORCE}`, {
       output,
       plan,
       commit: plan?.commit,
       returnTo: startPath,
-      audit: values.org ? async () => fromTrail(step, await setupAuditTrail(values.org!, began)) : undefined,
+      audit: values.org ? async () => fromTrail(claim, await setupAuditTrail(values.org!, began)) : undefined,
       allowDestructive: values['allow-destructive'],
       verify: values['no-verify'] ? undefined : (page, history) => verifyDone(plan?.doneWhen || step, page, { recentActions: history }),
       maxActions: Number(values['max-actions']),
@@ -215,7 +218,7 @@ async function main(): Promise<void> {
           process.exitCode = 2;
         }
         if (entries.length) {
-          const verdict = await fromTrail(step, entries);
+          const verdict = await fromTrail(claim, entries);
           writeFileSync(`${output}/audit-verdict.json`, JSON.stringify(verdict, null, 2));
           console.log(`  => Jev, reading that record: ${verdict.confirmed ? 'it CONFIRMS the step' : 'it does NOT confirm the step'} (p=${verdict.probability.toFixed(2)})${verdict.note ? `. ${verdict.note}` : ''}`);
           if (result.status === 'done' && !verdict.confirmed) process.exitCode = 2;
@@ -225,7 +228,8 @@ async function main(): Promise<void> {
       }
     }
     if (values['keep-open']) await prompt.question('Browser left open for inspection. Enter to close: ');
-    process.exitCode = result.status === 'done' ? 0 : 2;
+    // A done run the audit trail contradicted has already set 2; a pipeline gating on the exit code must see it.
+    if (process.exitCode !== 2) process.exitCode = result.status === 'done' ? 0 : 2;
   } finally {
     prompt.close();
     await browser?.close();

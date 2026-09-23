@@ -28,6 +28,7 @@ const FRAME = `<style>
 <label class="toggle"><input id="t" type="checkbox"><span class="faux"></span> Enable Order Follow Up</label>
 <select aria-label="Run as"><option>User</option><option>System</option></select>
 <select aria-label="Time Zone">${ZONES}</select>
+<table><tr><td>Run As</td><td><input type="text"></td></tr></table>
 <img alt="Checked" width="21" height="16" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=">
 <input type="password" value="never expose this" aria-label="Secret">
 <label for="ro">Shared contacts</label><input id="ro" type="checkbox" checked disabled>
@@ -38,6 +39,9 @@ const PAGE = `<!doctype html><title>Setup fixture</title>
 <label>Quick Find <input id="qf" type="search"></label>
 <flow-row></flow-row>
 <table><tr><td><a href="#r1">Remove</a></td><td>Tag</td><td>Custom Field</td></tr><tr><td><a href="#r2">Remove</a></td><td>Version</td><td>Custom Field</td></tr></table>
+<div role="grid"><div role="row"><div role="gridcell" tabindex="0"><cell-text></cell-text></div><div role="gridcell" tabindex="-1"><button>Show actions</button></div></div></div>
+<input type="search" placeholder="Search this list..." onkeydown="if(event.key==='Enter')window.searched=this.value">
+<div class="rolodex"><a href="#A">A</a> <a href="#B">B</a> <a href="#C">C</a> <a href="#D">D</a> <a href="#E">E</a> <a href="#F">F</a> <a href="#G">G</a> <a href="#H">H</a> <a href="#I">I</a> <a href="#J">J</a> <a href="#K">K</a> <a href="#L">L</a> <a href="#M">M</a> <a href="#N">N</a> <a href="#O">O</a> <a href="#P">P</a> <a href="#Q">Q</a> <a href="#R">R</a> <a href="#S">S</a> <a href="#T">T</a> <a href="#U">U</a> <a href="#V">V</a> <a href="#W">W</a> <a href="#X">X</a> <a href="#Y">Y</a> <a href="#Z">Z</a> <a href="#other">Other</a> <a href="#all">All</a></div>
 <ul role="tree"><li role="treeitem"><a href="#users">Users</a></li><li role="treeitem" tabindex="0">Leaf node</li></ul>
 <iframe title="Process Automation Settings" tabindex="0" width="640" height="200" srcdoc="${escape(FRAME)}"></iframe>
 <div style="height:3000px"></div>
@@ -46,6 +50,8 @@ const PAGE = `<!doctype html><title>Setup fixture</title>
 customElements.define('flow-actions', class extends HTMLElement { connectedCallback() {
   const root=this.attachShadow({mode:'open'}); root.innerHTML='<button>Activate</button>';
   root.querySelector('button').onclick=()=>window.activated=(window.activated||0)+1; } });
+customElements.define('cell-text', class extends HTMLElement { connectedCallback() {
+  this.attachShadow({mode:'open'}).innerHTML='<span>Partner API</span>'; } });
 customElements.define('flow-row', class extends HTMLElement { connectedCallback() {
   this.attachShadow({mode:'open'}).innerHTML='<span>Order Follow Up</span><flow-actions></flow-actions>'; } });
 </script>`;
@@ -120,7 +126,7 @@ test('the loop drives shadow DOM, an iframe, a clipped toggle, a select and an o
   assert.equal(await page.evaluate(() => (window as any).farClicks), 1, 'offscreen control scrolled into view');
 
   const observed = JSON.parse(await readFile(join(folder, 'last_observation.json'), 'utf8'));
-  assert.equal(observed.stats[0].open_shadow_roots, 2);
+  assert.equal(observed.stats[0].open_shadow_roots, 3);
   assert.ok(observed.stats[0].walked > observed.stats[0].query_selector_all, 'shadow controls were reached');
   assert.ok(!JSON.stringify(observed).includes('never expose this'), 'password values never leave the page');
   assert.match(observed.text, /\[Checked\]/, 'state drawn as an image (Classic Setup) is readable');
@@ -133,10 +139,36 @@ test('the loop drives shadow DOM, an iframe, a clipped toggle, a select and an o
   assert.ok(labels.includes('link:Remove (row: Remove Tag Custom Field)') && labels.includes('link:Remove (row: Remove Version Custom Field)'),
     `identical labels carry their row, got: ${labels.filter((l) => l.includes('Remove')).join(' ; ')}`);
   assert.ok(labels.includes('button:Activate'), 'a label that is already unique is left alone');
+  assert.ok(labels.some((l) => l.startsWith('textbox:Run As')), 'an unlabelled Classic text field takes the cell to its left');
   const zone = observed.actions.filter((a: any) => a.label.startsWith('Time Zone'));
   assert.equal(zone.length, 1, 'a 40-option dropdown is one target, not 40');
   assert.deepEqual([zone[0].kind, zone[0].options.length], ['fill', 40]);
   assert.ok(existsSync(join(folder, 'trace.json')) && existsSync(join(folder, 'final.png')));
+});
+
+test('a datatable cell with no name of its own is not a target, the real control in its row is', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = await browser.observe();
+  const labels = page.actions.map((a) => `${a.role}:${a.label}`);
+  assert.ok(!labels.some((l) => l.startsWith('gridcell:')), `unnamed cells were offered: ${labels.filter((l) => l.startsWith('gridcell')).join(' ; ')}`);
+  assert.ok(labels.includes('button:Show actions'));
+});
+
+test('an A-Z row above a Classic list says what its letters do', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const labels = (await browser.observe()).actions.map((a) => a.label);
+  assert.ok(labels.includes('L (list filter: show only records whose name starts with L)'), labels.filter((l) => /^L\b/.test(l)).join(' ; '));
+  assert.ok(labels.includes('All (list filter: show every record)'));
+});
+
+test("a list's search box is submitted with Enter; Quick Find is not", async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = await browser.observe();
+  const list = page.actions.find((a) => a.kind === 'fill' && a.label === 'Search this list...')!;
+  assert.equal(await browser.act(list, 'AI User'), 'type+enter');
+  assert.equal(await browser.page.evaluate(() => (window as any).searched), 'AI User');
+  const quickFind = (await browser.observe()).actions.find((a) => a.kind === 'fill' && a.label === 'Quick Find')!;
+  assert.equal(await browser.act(quickFind, 'Users'), 'type');
 });
 
 test('a covered or removed target is rejected before any input is sent', async (t) => {

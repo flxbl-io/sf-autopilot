@@ -6,7 +6,12 @@ import { DESTRUCTIVE } from './guards.js';
 import { readFrame } from './snapshot.js';
 import type { Action, FrameStats, Page } from './types.js';
 
-const MAX_ACTIONS = 250;
+/**
+ * How many controls one observation reads. Jev is shown at most TABLE_LIMIT of them (jev.ts), picked for the step;
+ * this ceiling only guards against a pathological page. Seen live: Named Credentials lists some 80 records, and
+ * reading stopped at 250 on the record just before the one the step named.
+ */
+const MAX_ACTIONS = 600;
 
 /** The chosen element is gone or cannot take input. Nothing was executed; observe and choose again. */
 export class Stale extends Error {}
@@ -216,7 +221,11 @@ export class PlaywrightBrowser {
         // After a save, Lightning re-routes and swaps in a new iframe. For a moment there is no iframe and
         // nothing in flight, and the page looks settled with only its navigation. Give the frame time to return.
         const frames = new Set(result.page.actions.map((a) => a.node?.split(':')[0])).size - 1;
-        const vanished = frames < this.contentFrames && elapsed < 5000;
+        // A Classic page opened inside Lightning (".../page?address=...") is nothing but its iframe. Seen live: the
+        // Sites detail page took over 5 seconds, the sidebar alone was read as the page, and Jev clicked "Sites"
+        // again, four times round. There the frame is waited for as long as the page itself.
+        const classic = /\/lightning\/setup\/[^/]+\/page\?address=/.test(result.page.url);
+        const vanished = frames < this.contentFrames && elapsed < (classic ? settleMs : 5000);
         const needed = patient || arrived() ? 5 : 2;
         if ((stable >= needed && !skeleton && !vanished) || elapsed > settleMs) {
           this.refs = result.refs;
@@ -267,6 +276,17 @@ export class PlaywrightBrowser {
         // filter on key events, so after fill() the box holds the text and nothing happens. Clear, then type.
         await handle.fill('', { timeout: 5000 });
         await handle.type(text ?? '', { delay: 15, timeout: 15_000 });
+        // A list's own search box ("Search this list...") searches only on Enter. Seen live: "AI User" sat in the
+        // Users list search, nothing was filtered, and Jev gave up. Only a search box, never a form field, where
+        // Enter could submit the form; and not Quick Find, which filters as you type.
+        if (action.role === 'searchbox' && !/^Quick Find\b/.test(action.label)) {
+          // The text is already in: a failure here is after input, so it must stop the run, never read as Stale.
+          await handle.press('Enter', { timeout: 5000 }).catch((error: Error) => {
+            throw new Error(`Enter after typing failed: ${error.message}`);
+          });
+          await this.quiet(action);
+          return 'type+enter';
+        }
         await this.quiet(action);
         return 'type';
       }

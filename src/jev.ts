@@ -94,6 +94,8 @@ const STOPWORDS = new Set(['this', 'that', 'with', 'from', 'into', 'then', 'them
  * Jev refuses a request that is too large (seen live: Sharing Settings lists rules and buttons for every object).
  * Keep the controls most likely to matter: those sharing words with the goal, then those on screen, in page order.
  */
+const framed = (a: Action) => !String(a.node ?? '').startsWith('0:');
+
 export function mostRelevant(actions: Action[], goal: string, keep: number): Action[] {
   const words = new Set((goal.toLowerCase().match(/[a-z][a-z0-9_]{3,}/g) ?? []).filter((w) => !STOPWORDS.has(w)));
   const controls = actions.filter((a) => a.node === undefined);
@@ -106,11 +108,19 @@ export function mostRelevant(actions: Action[], goal: string, keep: number): Act
       return { action, order, score };
     });
   const kept = new Set(
-    [...scored].sort((a, b) => b.score - a.score || Number(b.action.in_viewport ?? false) - Number(a.action.in_viewport ?? false) || a.order - b.order)
+    // Ties go to the embedded Setup page over the sidebar and header around it, then to what is on screen.
+    [...scored].sort((a, b) => b.score - a.score || Number(framed(b.action)) - Number(framed(a.action)) ||
+      Number(b.action.in_viewport ?? false) - Number(a.action.in_viewport ?? false) || a.order - b.order)
       .slice(0, keep).map((s) => s.action),
   );
   return [...actions.filter((a) => kept.has(a)), ...controls];
 }
+
+/**
+ * The most controls one Jev request carries. A long list is read whole (browser.ts); past this, the controls that
+ * share words with the goal are kept, so the record a step names is never lost to where a page happens to end.
+ */
+export const TABLE_LIMIT = 250;
 
 export interface ChooseOptions {
   post?: Post;
@@ -125,9 +135,10 @@ export async function choose(
   history: HistoryEntry[],
   options: ChooseOptions = {},
 ): Promise<Decision> {
-  // Full table first. If Jev says it is too large, the most relevant 120 controls, then 60.
-  for (const keep of [Infinity, 120, 60]) {
-    const actions = keep === Infinity ? page.actions : mostRelevant(page.actions, goal, keep);
+  // At most TABLE_LIMIT controls, the most relevant when a page has more. If Jev says even that is too large, the
+  // most relevant 120, then 60.
+  for (const keep of [TABLE_LIMIT, 120, 60]) {
+    const actions = page.actions.length - 1 <= keep ? page.actions : mostRelevant(page.actions, goal, keep);
     try {
       return await chooseFrom({ ...page, actions }, goal, history, options);
     } catch (error) {
