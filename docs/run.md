@@ -87,7 +87,7 @@ More real runs: [samples.md](samples.md).
 | `--no-verify` | Accept Jev's `DONE` unreviewed. |
 | `--no-ideas` | When stuck, do not ask the LLM what the current page offers to try. |
 | `--allow-destructive` | Continue past a page that warns of permanent data loss. |
-| `--start-path`, `--max-actions` | Where to begin; how many actions at most (default 25). |
+| `--start-path`, `--max-actions` | Where to begin; how many actions at most (default: 6 per planned step, at least 25, at most 60). |
 | `--headless`, `--window x,y,w,h`, `--channel`, `--keep-open` | The browser. |
 
 Exit codes: `0` done, `2` stopped, blocked or unverified, `3` the planner judged it not a browser step.
@@ -129,6 +129,9 @@ operation, target, top-3 target probabilities, confidence and latency; a screens
 - A target that stays covered (an open dialog over "Activation...") is explained to Jev after two refusals and
   ends the run after five, instead of forty requests.
 - `SCROLL` loads more rows of a long list; twenty per run at most.
+- When the page is about one record (an id in its URL or a frame's), the reviewer is also given that record as the
+  org holds it, read with SOQL. Seen live: a loan product's Max Term was set to 1000 and saved on a managed-package
+  page that never showed it; the run went on until a guard stopped it. The saved record is the evidence.
 - When the run is stuck (a `BLOCKED`, a refused repeat, a covered target, two unsure decisions in a row) the LLM
   looks at the page it is on and suggests up to three things worth trying, naming controls that are there. Jev
   reads them as suggestions and still chooses from the table. Nothing about where Salesforce keeps a button is

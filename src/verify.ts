@@ -9,6 +9,7 @@
 
 import { chatJson, type LlmOptions } from './llm.js';
 import { VERIFY } from './prompts.js';
+import type { SavedRecord } from './record.js';
 import type { Page } from './types.js';
 
 export interface Verdict {
@@ -21,6 +22,8 @@ export interface Evidence {
   recentActions?: { action: string; kind: string; text: string | null }[];
   /** The page was just opened in a new browser session, so what it shows is what is saved. */
   freshSession?: boolean;
+  /** The record the page shows, read from the org: what is saved, whatever the page draws. */
+  record?: SavedRecord | null;
 }
 
 export async function verifyDone(doneWhen: string, page: Page, options: LlmOptions & Evidence = {}): Promise<Verdict> {
@@ -38,6 +41,7 @@ export async function verifyDone(doneWhen: string, page: Page, options: LlmOptio
     controls,
     recent_actions: options.recentActions ?? [],
     fresh_session: options.freshSession ?? false,
+    ...(options.record ? { saved_record: options.record } : {}),
     }), { maxTokens: 1024, post: options.post, model: options.model });
   } catch (error) {
     // Seen live: a reply that was not JSON ended a run that had done nothing wrong. No verdict is a "no".

@@ -73,6 +73,10 @@ Setup Home. On such a page an editable form is normal and is not a sign of an un
 is that the form shows the requested value AND either "fresh_session" is true (the page was just opened in a
 new browser session, so whatever it shows is what is saved), or "recent_actions" show Save was clicked and
 the page was opened again afterwards. A value typed or chosen but with no Save after it is not saved.
+When "saved_record" is given, it is the record the page shows, read from the org's database just now: its values
+are saved, whatever the page draws. If it is the record the step changes and it holds the values "done_when" asks
+for, the step is done even when the page itself does not show them (a managed-package page may not). A value missing
+from it proves nothing either way.
 Absence can be the evidence. When "done_when" is that something is no longer listed, and the page shows the
 list or table it would appear in, then that list not containing it is the proof: answer true. Do not ask for
 a message saying it was removed, and do not doubt that a list you can see is complete.

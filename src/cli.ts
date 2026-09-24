@@ -16,6 +16,7 @@ import { chooseRecipe, loadRecipes, recipePlan } from './recipes.js';
 import { run } from './run.js';
 import { trialRecipe } from './trial.js';
 import type { Page } from './types.js';
+import { RecordReader } from './record.js';
 import { verifyDone } from './verify.js';
 
 const SETUP_HOME = '/lightning/setup/SetupOneHome/home';
@@ -45,7 +46,7 @@ const HELP = `sf-autopilot: hand it a Salesforce org and a manual step.
       --allow-destructive act even when the page warns of permanent data loss (default: stop for a human)
       --no-verify         accept Jev's DONE without an LLM review of the page
       --no-ideas          when stuck, do not ask the LLM what this page offers to try next
-      --max-actions <n>   default 25
+      --max-actions <n>   default: 6 per planned step, at least 25, at most 60
       --headless          no browser window
       --window <x,y,w,h>  place the visible browser window, in screen points (for watching or recording a run)
       --channel <name>    default chrome; "" uses Playwright's bundled Chromium
@@ -113,7 +114,7 @@ async function main(): Promise<void> {
       'allow-destructive': { type: 'boolean', default: false },
       'no-verify': { type: 'boolean', default: false },
       'no-ideas': { type: 'boolean', default: false },
-      'max-actions': { type: 'string', default: '25' },
+      'max-actions': { type: 'string' },
       headless: { type: 'boolean', default: false },
       window: { type: 'string' },
       channel: { type: 'string', default: 'chrome' },
@@ -198,6 +199,7 @@ async function main(): Promise<void> {
     if (await browser.ensureRendered(SETUP_HOME)) console.log(`  (${startPath} did not render; starting from Setup Home instead)\n`);
 
     const began = new Date();
+    const reader = values.org ? new RecordReader(values.org) : null;
     // The audit trail records results, not clicks: judge the step's outcome when the planner wrote one.
     const claim = plan?.outcome ?? step;
     const output = `artifacts/${began.toISOString().replace(/[-:]|\.\d+/g, '')}`;
@@ -211,8 +213,12 @@ async function main(): Promise<void> {
       files: provided,
       ideas: values['no-ideas'] ? undefined : (context) => pageIdeas(context),
       toggle: (label) => toggleIntent(plan?.goal ?? step, label),
-      verify: values['no-verify'] ? undefined : (page, history) => verifyDone(plan?.doneWhen || step, page, { recentActions: history }),
-      maxActions: Number(values['max-actions']),
+      // The record the page shows, read back from the org, so a save the page does not draw still counts.
+      verify: values['no-verify'] ? undefined : async (page, history) =>
+        verifyDone(plan?.doneWhen || step, page, { recentActions: history, record: reader ? await reader.read(page) : null }),
+      // Seen live: creating a fee or an approval definition takes more than 25 actions. The plan says how long
+      // the step is; the loop guards still stop a run that wanders.
+      maxActions: values['max-actions'] ? Number(values['max-actions']) : Math.min(60, Math.max(25, 6 * (plan?.steps.length ?? 0))),
       log: console.log,
       confirm: values.confirm ? () => ask('    Enter to execute, anything else to stop: ') : undefined,
     });

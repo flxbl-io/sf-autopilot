@@ -8,6 +8,7 @@ export { actionSpace, choose, validateChoice, type ActionSpace, type ChooseOptio
 export { chatJson, extractJson, type LlmOptions, type LlmReply } from './llm.js';
 export { frontdoorUrl, orgContext, type OrgContext } from './org.js';
 export { attachments, listFiles, matchFiles } from './files.js';
+export { RecordReader, recordIds, type SavedRecord } from './record.js';
 export { meter, postJson, usage, type Meter } from './http.js';
 export { ideaContext, pageIdeas, type IdeaContext } from './ideas.js';
 export { planGoal, planStep, safeStartPath, type Plan } from './planner.js';
