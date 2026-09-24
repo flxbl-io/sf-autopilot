@@ -496,3 +496,27 @@ test('when stuck, ideas from a look at the page reach Jev as suggestions, and Je
     await at.close();
   }
 });
+
+test('a toggle already in the state the step wants is never clicked', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = join(folder, 'history.html');
+  await writeFile(page, `<!doctype html><title>Account Field History</title><label><input id="m" type="checkbox" checked> Mobile Opt Out</label><button>Save</button>`);
+  const at = await PlaywrightBrowser.open(pathToFileURL(page).href, { headless: true });
+  try {
+    const asked: string[] = [];
+    const result = await run(at, 'Tick Mobile Opt Out and save', {
+      allowedHosts: null,
+      choose: (p, g, h) => choose(p, g, h, { apiKey: 'offline', post: scripted([['CLICK', 'Mobile Opt Out']], []) }),
+      toggle: async (label) => {
+        asked.push(label);
+        return true;
+      },
+    });
+    assert.equal(await at.page.evaluate(() => (document.getElementById('m') as HTMLInputElement).checked), true, 'still ticked');
+    assert.match(result.status, /kept trying to untick "Mobile Opt Out"/);
+    assert.equal(result.actions, 0);
+    assert.ok(asked.every((l) => l === 'Mobile Opt Out'));
+  } finally {
+    await at.close();
+  }
+});

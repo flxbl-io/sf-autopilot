@@ -50,6 +50,11 @@ export interface RunOptions {
    * might be worth trying. The answer is shown to Jev as ideas, never executed. Unset, the run gets no ideas.
    */
   ideas?: (context: IdeaContext) => Promise<string[]>;
+  /**
+   * Asked before a click that flips a checkbox, switch or radio whose state is known: should it end up checked?
+   * true / false / null (the goal does not say). A click that would leave it the other way is refused.
+   */
+  toggle?: (label: string) => Promise<boolean | null>;
   /** Called before every action. Return false to stop. */
   confirm?: (step: Step) => Promise<boolean>;
   maxActions?: number;
@@ -306,6 +311,23 @@ export async function run(browser: PlaywrightBrowser, goal: string, options: Run
     if (saveKey && (saves.get(saveKey) ?? 0) >= 2) {
       status = `stopped: "${action.label.slice(0, 80)}" was already pressed twice and the change is still not confirmed; a human should look`;
       break;
+    }
+    // A toggle already in the state the goal wants must not be clicked: that undoes the step. Jev's rules say so,
+    // and Jev still did it once (seen live), so it is checked here too, before any input.
+    const isToggle = action.kind === 'click' && ['checkbox', 'radio', 'switch'].includes(action.role ?? '') && ['true', 'false'].includes(action.checked ?? '');
+    if (isToggle && options.toggle) {
+      const wanted = await options.toggle(action.label);
+      const after = action.role === 'radio' ? true : action.checked !== 'true';
+      if (wanted !== null && wanted !== after) {
+        if (++repeats >= 2) {
+          status = `stopped: kept trying to ${after ? 'tick' : 'untick'} "${action.label.slice(0, 80)}", which the step wants ${wanted ? 'ticked' : 'unticked'}`;
+          break;
+        }
+        step.stale = `Refused: "${action.label.slice(0, 60)}" is already ${wanted ? 'ticked' : 'unticked'}, as the step wants; clicking it would undo that.`;
+        log(`    ${step.stale}`);
+        notes += `\n\n"${action.label.slice(0, 80)}" is already ${wanted ? 'ticked' : 'unticked'}, which is what the step wants. Do not click it. Save if a change is pending, or DONE.`;
+        continue;
+      }
     }
     let value: string | undefined;
     if (action.kind === 'fill') {

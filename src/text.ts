@@ -1,7 +1,7 @@
 /** The LLM writes a field value. It is called only when Jev chooses TYPE_TEXT; it never chooses what to click. */
 
 import { chatJson, type LlmOptions } from './llm.js';
-import { TEXT_VALUE } from './prompts.js';
+import { TEXT_VALUE, TOGGLE } from './prompts.js';
 import type { Action, HistoryEntry, Page } from './types.js';
 
 export interface FieldContext {
@@ -51,4 +51,18 @@ export async function fieldText(context: FieldContext, options: LlmOptions = {})
     throw new Error('Text helper returned no valid field value; nothing typed.');
   }
   return { text, model: reply.model, latencyMs: reply.latencyMs, usage: reply.usage };
+}
+
+/**
+ * Should this toggle end up checked? true, false, or null when the goal does not say. Seen live: "tick Mobile Opt
+ * Out" met a box that was already ticked, the agent clicked it, saved, and turned the tracking off. Asked before
+ * every toggle click; an unreadable answer is null, which never blocks a click.
+ */
+export async function toggleIntent(goal: string, label: string, options: LlmOptions = {}): Promise<boolean | null> {
+  try {
+    const reply = await chatJson(TOGGLE, JSON.stringify({ goal, control: label }), { maxTokens: 64, model: process.env.LLM_TEXT_MODEL, ...options });
+    return typeof reply.json.checked === 'boolean' ? reply.json.checked : null;
+  } catch {
+    return null;
+  }
 }

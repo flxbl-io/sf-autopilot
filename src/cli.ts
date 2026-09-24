@@ -6,7 +6,9 @@ import { audited, setupAuditTrail, type AuditEntry } from './audit.js';
 import { PlaywrightBrowser } from './browser.js';
 import { auditCommand, judgeClaims } from './check.js';
 import { attachments } from './files.js';
+import { usage } from './http.js';
 import { pageIdeas } from './ideas.js';
+import { toggleIntent } from './text.js';
 import { frontdoorUrl, orgContext } from './org.js';
 import { planGoal, planStep, type Plan } from './planner.js';
 import { SALESFORCE } from './prompts.js';
@@ -169,7 +171,7 @@ async function main(): Promise<void> {
     // A tested procedure beats an invented one. Jev picks it; no confident match means plan from scratch.
     const match = values['no-recipes'] ? null : await chooseRecipe(step, loadRecipes(), { onlyVerified: !values.candidates });
     plan = match ? recipePlan(match, step) : await planStep(step, {}, provided.map((f) => f.name), values.org ? await orgContext(values.org) : undefined);
-    if (command === 'plan') return console.log(JSON.stringify(plan, null, 2));
+    if (command === 'plan') return console.log(JSON.stringify({ ...plan, usage }, null, 2));
     if (!plan.executable) {
       console.error(`Not a browser step: ${plan.reason}`);
       process.exit(3);
@@ -208,6 +210,7 @@ async function main(): Promise<void> {
       allowDestructive: values['allow-destructive'],
       files: provided,
       ideas: values['no-ideas'] ? undefined : (context) => pageIdeas(context),
+      toggle: (label) => toggleIntent(plan?.goal ?? step, label),
       verify: values['no-verify'] ? undefined : (page, history) => verifyDone(plan?.doneWhen || step, page, { recentActions: history }),
       maxActions: Number(values['max-actions']),
       log: console.log,
@@ -241,6 +244,10 @@ async function main(): Promise<void> {
         console.log(`\n${(error as Error).message}`);
       }
     }
+    // Measured, not estimated: every model call of this process, planning and the audit check included.
+    writeFileSync(`${output}/usage.json`, JSON.stringify({ ...usage, elapsedMs: Date.now() - began.getTime(), status: result.status }, null, 2));
+    console.log(`\nModel calls: Jev ${usage.jev.calls} (${usage.jev.inputTokens} in / ${usage.jev.outputTokens} out tokens), ` +
+      `LLM ${usage.llm.calls} (${usage.llm.inputTokens} in / ${usage.llm.outputTokens} out tokens).`);
     if (values['keep-open']) await prompt.question('Browser left open for inspection. Enter to close: ');
     // A done run the audit trail contradicted has already set 2; a pipeline gating on the exit code must see it.
     if (process.exitCode !== 2) process.exitCode = result.status === 'done' ? 0 : 2;
