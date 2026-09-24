@@ -11,7 +11,7 @@ export interface FrameAction {
   node: number;
   role: string;
   label: string;
-  kind: 'click' | 'fill' | 'select';
+  kind: 'click' | 'fill' | 'select' | 'upload';
   in_viewport: boolean;
   value?: string;
   current_value?: string;
@@ -59,27 +59,42 @@ export function readFrame(): FrameState | null {
   const toggle = (e: any) => e.tagName === 'INPUT' && ['checkbox', 'radio'].includes(e.type);
   const visible = (e: any) =>
     (rendered(e) && sized(e)) || (toggle(e) && [...(e.labels || [])].some((l: any) => rendered(l) && sized(l)));
-  const byId = (e: any, id: string) => e.getRootNode().getElementById?.(id) || document.getElementById(id);
-  const name = (e: any, seen = new Set<any>()): string => {
+  // Lightning's synthetic shadow DOM throws on ShadowRoot.getElementById ("Disallowed method"). Seen live: one
+  // aria-labelledby on a record list made every observation of the page fail, and the run died on "did not settle".
+  const byId = (e: any, id: string) => {
+    const root = e.getRootNode();
+    try {
+      return root.getElementById?.(id) || document.getElementById(id);
+    } catch {
+      try {
+        return root.querySelector?.(`[id="${CSS.escape(id)}"]`) || document.getElementById(id);
+      } catch {
+        return document.getElementById(id);
+      }
+    }
+  };
+  const name = (e: any, seen = new Set<any>(), deep = true): string => {
     if (!e || seen.has(e)) return '';
     seen.add(e);
     const referenced = (e.getAttribute('aria-labelledby') || '')
       .split(/\s+/)
       .filter(Boolean)
-      .map((id: string) => name(byId(e, id), seen))
+      .map((id: string) => name(byId(e, id), seen, deep))
       .filter(Boolean)
       .join(' ');
     return (
       referenced ||
       e.getAttribute('aria-label') ||
-      [...(e.labels || [])].map((l: any) => name(l, seen)).filter(Boolean).join(' ') ||
+      [...(e.labels || [])].map((l: any) => name(l, seen, deep)).filter(Boolean).join(' ') ||
       (['button', 'submit', 'reset'].includes(e.type) ? e.value : '') ||
       e.getAttribute('alt') ||
       (e.tagName === 'INPUT'
         ? ''
-        : [...e.childNodes]
+        // LWC draws an option's or a button's words inside its own shadow root. Seen live: every App Launcher
+        // result read as "option", and Jev picked one blind.
+        : [...e.childNodes, ...(deep && e.shadowRoot ? e.shadowRoot.childNodes : [])]
             .map((n: any) =>
-              n.nodeType === 3 ? n.textContent : n.nodeType === 1 && n.getAttribute('aria-hidden') !== 'true' ? name(n, seen) : '',
+              n.nodeType === 3 ? n.textContent : n.nodeType === 1 && n.getAttribute('aria-hidden') !== 'true' ? name(n, seen, deep) : '',
             )
             .join(' ')
             .replace(/\s+/g, ' ')
@@ -146,10 +161,26 @@ export function readFrame(): FrameState | null {
   // shows a saved checkbox as <input type="checkbox" disabled>. Its state is reported as a fact, never a target.
   const facts: string[] = [];
   for (const e of found) {
+    // A file input is offered as an upload target by its label alone; its value is never read. Salesforce clips
+    // the real input to 1px and draws an "Upload Files" label or drop zone over it, so that is what must show.
+    if (e.tagName === 'INPUT' && e.type === 'file') {
+      if (e.matches(':disabled') || e.closest('[aria-disabled="true"]')) continue;
+      const shown = [e, ...(e.labels || []), e.closest('label'), e.parentElement].find((x: any) => x && rendered(x) && sized(x));
+      if (!shown) continue;
+      const zone = (e.closest('label,[class*="file-selector"],[class*="upload"]')?.innerText || '').replace(/\s+/g, ' ').trim();
+      const label = (name(e) || zone || 'file').slice(0, 120);
+      const r = shown.getBoundingClientRect();
+      owners.set(identity(e), e);
+      actions.push({ node: identity(e), role: 'file', kind: 'upload', label: `${label} (file upload)`,
+        in_viewport: r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth });
+      continue;
+    }
     if (!safe(e) || !visible(e)) continue;
     if (e.matches(':disabled') || e.closest('[aria-disabled="true"]')) {
       const label = name(e);
-      if (!label || facts.length >= 40) continue;
+      // A datatable's read-only checkbox cell is named by its own value. Seen live on the Flows list: forty lines
+      // of "true: checked" pushed the page's real text out of what the models read.
+      if (!label || /^(true|false|checked|not checked)$/i.test(label.trim()) || facts.length >= 40) continue;
       if (toggle(e)) facts.push(`${label}: ${e.checked ? 'checked' : 'not checked'} (read-only)`);
       else if (e.tagName === 'SELECT') facts.push(`${label}: ${[...e.selectedOptions].map((o: any) => o.label).join(', ')} (read-only)`);
       else if (e.getAttribute('aria-checked') !== null) facts.push(`${label}: ${e.getAttribute('aria-checked') === 'true' ? 'checked' : 'not checked'} (read-only)`);
@@ -169,7 +200,8 @@ export function readFrame(): FrameState | null {
     // so each cell reads as an unnamed "gridcell". Seen live on Named Credentials: four per row, the table filled up
     // at the fortieth record, and the one the step named was never offered. The row's real controls (its link,
     // "Show actions") are read on their own; an unnamed cell adds nothing a model could choose between.
-    if (rname === 'gridcell' && !label) continue;
+    // Named only from inside a shadow root, a cell is still one of those: its row's real controls say the same.
+    if (rname === 'gridcell' && !name(e, new Set(), false)) continue;
     // A <select> with no accessible name would otherwise be named by its own options. Classic Setup keeps the
     // field's label in the cell to its left, with no <label for>, so look there.
     if (e.tagName === 'SELECT' && !(e.getAttribute('aria-label') || e.getAttribute('aria-labelledby') || e.labels?.length || e.getAttribute('title'))) {
@@ -221,7 +253,18 @@ export function readFrame(): FrameState | null {
       const raw = 'value' in e ? String(e.value) : e.isContentEditable || rname === 'combobox' ? e.innerText.trim() : '';
       const value = raw.slice(0, 400);
       actions.push({ ...base, kind: editable ? 'fill' : 'click', value });
-      if (editable) actions.push({ ...base, kind: 'click', value, label: 'Open ' + base.label });
+      // Salesforce's "Upload Files" is a plain button that opens the native file picker from script; the real input
+      // stays hidden. Seen live on a record's Files list. Such a button is also an upload target: Playwright clicks
+      // it and answers the picker with the operator's file.
+      // Not a control that undoes one. Seen live: "Cancel Invoice_Template_v6.22.docx upload" was offered.
+      if (!editable && ['button', 'link', 'menuitem'].includes(rname) && /\b(upload|attach|browse|choose files?|add files?|new version)\b/i.test(label || '') &&
+        !/\b(cancel|remove|delete|close|clear|undo|abort|stop)\b/i.test(label || '')) {
+        actions.push({ ...base, kind: 'upload', value: '', label: `${base.label} (opens a file picker)` });
+      }
+      // A lookup or combobox must be clicked to show its choices. A plain search or text box need not be, and
+      // offering "Open Quick Find" anyway gave Jev something to click in circles (seen live, three runs).
+      const pops = rname === 'combobox' || ['aria-haspopup', 'aria-autocomplete', 'list'].some((k) => e.hasAttribute(k));
+      if (editable && pops) actions.push({ ...base, kind: 'click', value, label: 'Open ' + base.label });
     }
   }
 

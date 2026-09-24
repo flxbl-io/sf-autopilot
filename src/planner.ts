@@ -1,6 +1,7 @@
 /** A step written for a human becomes a plan a browser agent can act on. One LLM call, before any browser opens. */
 
 import { chatJson, type LlmOptions } from './llm.js';
+import type { OrgContext } from './org.js';
 import { PLAN } from './prompts.js';
 
 export interface Plan {
@@ -51,8 +52,12 @@ export function keepsValues(step: string, outcome: string): boolean {
   return values.every((v) => text.includes(v));
 }
 
-export async function planStep(step: string, options: LlmOptions = {}): Promise<Plan> {
-  const reply = await chatJson(PLAN, JSON.stringify({ manual_step: step }), options);
+/**
+ * `files` are the names of the files the operator provided; a step needing any other file is not executable.
+ * `org`, when known, says what the org has, so a name the step uses can be placed: a tab, an app, a package.
+ */
+export async function planStep(step: string, options: LlmOptions = {}, files: string[] = [], org?: OrgContext): Promise<Plan> {
+  const reply = await chatJson(PLAN, JSON.stringify({ manual_step: step, provided_files: files, ...(org ? { org } : {}) }), options);
   const { executable, reason, startPath, goal, steps, doneWhen, outcome } = reply.json;
   const valid =
     typeof executable === 'boolean' &&

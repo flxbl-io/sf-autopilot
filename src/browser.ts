@@ -184,6 +184,7 @@ export class PlaywrightBrowser {
       }
     }
     actions.push({ id: 'wait', kind: 'wait', label: 'Wait for the page to update' });
+    actions.push({ id: 'scroll', kind: 'wait', label: 'Scroll down the page or its longest list, to load and reveal more rows' });
     const url = this.page.url();
     const text = [...this.dialogs, ...texts].join('\n');
     const fingerprint = createHash('sha256').update(JSON.stringify({ url, text, actions })).digest('hex');
@@ -259,7 +260,34 @@ export class PlaywrightBrowser {
   }
 
   /** Returns how the input was delivered. Every Stale is thrown before any input is sent. */
-  async act(action: Action, text?: string): Promise<string> {
+  async act(action: Action, text?: string, file?: string): Promise<string> {
+    if (action.kind === 'wait' && action.id === 'scroll') {
+      // Seen live: the Flows list drew its first rows and loaded the rest only on scroll, so the two flows a step
+      // named were never on the page. Scrolling sends no input to any control, so it is as safe as waiting.
+      for (const frame of await this.frames()) {
+        await frame.evaluate(() => {
+          const boxes: Element[] = [];
+          const walk = (root: Node) => {
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+            let n: any;
+            while ((n = walker.nextNode())) {
+              if (n.scrollHeight > n.clientHeight + 40 && /(auto|scroll)/.test(getComputedStyle(n).overflowY)) boxes.push(n);
+              if (n.shadowRoot) walk(n.shadowRoot);
+            }
+          };
+          walk(document.body);
+          // The list, not the pane around it: the box holding the most rows wins, then the larger one. Its end is
+          // what triggers a lazy list's next load, so go there rather than one screen down.
+          const rows = (e: Element) => e.querySelectorAll('[role="row"],tr,li,a[href]').length;
+          const area = (e: Element) => e.clientWidth * e.clientHeight;
+          const box = boxes.sort((a, b) => rows(b) - rows(a) || area(b) - area(a))[0];
+          if (box) box.scrollTop = box.scrollHeight;
+          else window.scrollTo(0, document.body.scrollHeight);
+        }).catch(() => undefined);
+      }
+      await this.page.waitForTimeout(1500);
+      return 'scroll';
+    }
     if (action.kind === 'wait') {
       await this.page.waitForTimeout(1000);
       return 'wait';
@@ -293,6 +321,33 @@ export class PlaywrightBrowser {
       if (action.kind === 'select') {
         await handle.selectOption({ index: action.option_index }, { timeout: 5000 });
         return 'select';
+      }
+      if (action.kind === 'upload') {
+        // The path comes from the operator, never from a model: run.ts resolves the chosen name to it.
+        if (!file) throw new Stale('No file was chosen for this upload');
+        if (await handle.evaluate((e) => e instanceof HTMLInputElement && e.type === 'file')) {
+          await handle.setInputFiles(file, { timeout: 5000 });
+          await this.quiet(action);
+          return 'upload';
+        }
+        // A button that opens the picker. Check it can be clicked before any input, then click and answer.
+        try {
+          await handle.click({ trial: true, timeout: 3000 });
+        } catch {
+          throw new Stale('Upload button is covered or not clickable');
+        }
+        const chooser = this.page.waitForEvent('filechooser', { timeout: 8000 }).catch(() => null);
+        await this.dispatch(handle);
+        const picker = await chooser;
+        // The click was delivered either way. With no picker it opened something else (a dialog with its own file
+        // input): report it as the click it was, and let the next observation show what opened.
+        if (!picker) {
+          await this.quiet(action);
+          return 'click (no file picker opened)';
+        }
+        await picker.setFiles(file);
+        await this.quiet(action);
+        return 'upload via file picker';
       }
     } catch (error) {
       if (error instanceof errors.TimeoutError) throw new Stale('Target cannot take input');

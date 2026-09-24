@@ -305,3 +305,194 @@ test('a long dropdown is chosen by naming one of its options, and nothing else i
     await zones.close();
   }
 });
+
+const UPLOAD = `<!doctype html><title>Conga Template</title>
+<style>.clip{position:absolute;width:1px;height:1px;clip:rect(0 0 0 0);overflow:hidden;margin:-1px;border:0}</style>
+<lwc-option></lwc-option>
+<div class="slds-file-selector"><label><input class="clip" id="up" type="file"
+  onchange="window.uploaded=[...this.files].map(f=>f.name)"><span>Upload Files</span> Or drop files</label></div>
+<button onclick="window.saves=(window.saves||0)+1">Save</button>
+<script>customElements.define('lwc-option', class extends HTMLElement { connectedCallback() {
+  this.setAttribute('role','option'); this.attachShadow({mode:'open'}).innerHTML='<span>Points Setup</span>'; } });</script>`;
+
+/** A scripted Jev: each entry is [operation, text the chosen target's label must contain]. */
+const scripted = (script: [string, string | null][], requests: any[]): Post => async (_url, _key, body: any) => {
+  const [operation, needle] = script[Math.min(requests.length, script.length - 1)];
+  requests.push(body);
+  const answers: Record<string, unknown> = {};
+  for (const [name, question] of Object.entries<any>(body.questions)) {
+    const ids = Object.keys(question.criteria);
+    const pick = name === 'operation' ? operation : ids.find((id) => needle && question.criteria[id].element.includes(needle)) ?? ids[0];
+    answers[name] = { choice: pick, confidence: 1, probabilities: Object.fromEntries(ids.map((id) => [id, id === pick ? 1 : 0])) };
+  }
+  return { model: 'offline', answers, usage: { input_tokens: 1, output_tokens: 1 } };
+};
+
+test('a provided file is attached to a clipped file input; without one, no upload is offered at all', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = join(folder, 'upload.html');
+  const file = join(folder, 'Welcome Letter v3.docx');
+  await writeFile(page, UPLOAD);
+  await writeFile(file, 'template');
+  const at = await PlaywrightBrowser.open(pathToFileURL(page).href, { headless: true });
+  try {
+    const observed = await at.observe();
+    const upload = observed.actions.find((a) => a.kind === 'upload');
+    assert.ok(upload, 'the clipped input is offered through the label drawn over it');
+    assert.match(upload!.label, /Upload Files.*\(file upload\)/);
+    assert.ok(observed.actions.some((a) => a.label === 'Points Setup'), 'an option named inside its shadow root reads by that name');
+
+    const none: any[] = [];
+    await run(at, 'Upload the letter', {
+      allowedHosts: null, maxActions: 1,
+      choose: (p, g, h) => choose(p, g, h, { apiKey: 'offline', post: scripted([['BLOCKED', null]], none) }),
+    });
+    assert.ok(!('UPLOAD_FILE' in none[0].questions.operation.criteria), 'no files, no UPLOAD_FILE');
+
+    const requests: any[] = [];
+    const result = await run(at, 'Upload Welcome Letter v3.docx', {
+      allowedHosts: null,
+      files: [{ name: 'Welcome Letter v3.docx', path: file }],
+      choose: (p, g, h) => choose(p, g, h, { apiKey: 'offline', post: scripted([['UPLOAD_FILE', 'Upload Files'], ['UPLOAD_FILE', 'Upload Files'], ['UPLOAD_FILE', 'Upload Files'], ['DONE', null]], requests) }),
+    });
+    assert.deepEqual(await at.page.evaluate(() => (window as any).uploaded), ['Welcome Letter v3.docx']);
+    assert.equal(result.steps[0].delivered, 'upload');
+    assert.equal(result.steps[0].text, 'Welcome Letter v3.docx', 'the trace names the file, never its path');
+    assert.match(result.steps[1].stale ?? '', /already attached/, 'the same file is never attached twice');
+    assert.equal(result.actions, 1);
+    assert.ok(!JSON.stringify(requests).includes(file), "the file's path never reaches Jev");
+  } finally {
+    await at.close();
+  }
+});
+
+test('a third click in a row on one control is refused, and a second refusal ends the run', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = join(folder, 'repeat.html');
+  await writeFile(page, `<!doctype html><title>Timeline</title><button onclick="document.title='T'+Math.random();window.clicks=(window.clicks||0)+1">Timeline Settings</button>`);
+  const at = await PlaywrightBrowser.open(pathToFileURL(page).href, { headless: true });
+  try {
+    const requests: any[] = [];
+    const result = await run(at, 'Enable Timeline', {
+      allowedHosts: null,
+      choose: (p, g, h) => choose(p, g, h, { apiKey: 'offline', post: scripted([['CLICK', 'Timeline Settings']], requests) }),
+    });
+    assert.equal(await at.page.evaluate(() => (window as any).clicks), 2);
+    assert.match(result.status, /kept clicking "Timeline Settings"/);
+  } finally {
+    await at.close();
+  }
+});
+
+test("a shadow root whose getElementById throws (Lightning's synthetic shadow) does not break observation", async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = join(folder, 'locked.html');
+  await writeFile(page, `<!doctype html><title>Conga Templates</title><locked-list></locked-list><script>
+    customElements.define('locked-list', class extends HTMLElement { connectedCallback() {
+      const root = this.attachShadow({ mode: 'open' });
+      root.innerHTML = '<span id="lbl">Welcome Letter Template</span><button aria-labelledby="lbl"></button>';
+      root.getElementById = () => { throw new Error('Disallowed method "getElementById" on ShadowRoot.'); };
+    } });</script>`);
+  const at = await PlaywrightBrowser.open(pathToFileURL(page).href, { headless: true });
+  try {
+    const observed = await at.observe(3000);
+    assert.ok(observed.actions.some((a) => a.label === 'Welcome Letter Template'), 'the button is still named through its label');
+  } finally {
+    await at.close();
+  }
+});
+
+test('SCROLL loads more rows of a list that draws only its first ones, and sends no input', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = join(folder, 'lazy.html');
+  await writeFile(page, `<!doctype html><title>Flows</title><div id="box" style="height:300px;overflow-y:auto"></div><script>
+    const box = document.getElementById('box'); let n = 0;
+    const more = () => { for (let i = 0; i < 20; i++) { const a = document.createElement('a'); a.href = '#f' + n; a.textContent = 'Flow ' + (n++); a.style.display = 'block'; a.style.height = '30px'; box.appendChild(a); } };
+    more(); box.addEventListener('scroll', () => { if (box.scrollTop + box.clientHeight >= box.scrollHeight - 5 && n < 60) more(); });
+  </script>`);
+  const at = await PlaywrightBrowser.open(pathToFileURL(page).href, { headless: true });
+  try {
+    const before = await at.observe(3000);
+    assert.ok(!before.actions.some((a) => a.label === 'Flow 39'));
+    const scroll = before.actions.find((a) => a.id === 'scroll')!;
+    for (let i = 0; i < 6; i++) assert.equal(await at.act(scroll), 'scroll');
+    const after = await at.observe(3000);
+    assert.ok(after.actions.some((a) => a.label === 'Flow 39'), 'rows past the first load are now on the page');
+    assert.equal(await at.page.evaluate(() => location.hash), '', 'nothing was clicked');
+  } finally {
+    await at.close();
+  }
+});
+
+test('an "Upload Files" button that opens the picker from script is answered with the provided file', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = join(folder, 'picker.html');
+  const file = join(folder, 'Invoice_Template_v6.22.docx');
+  await writeFile(file, 'v6.22');
+  await writeFile(page, `<!doctype html><title>Files</title><input id="hidden" type="file" style="display:none"
+    onchange="window.uploaded=[...this.files].map(f=>f.name)"><button onclick="document.getElementById('hidden').click()">Upload Files</button>
+    <button onclick="document.body.insertAdjacentHTML('beforeend','<p>Dialog opened</p>')">Upload New Version</button>
+    <button>Cancel Invoice_Template_v6.22.docx upload</button>`);
+  const at = await PlaywrightBrowser.open(pathToFileURL(page).href, { headless: true });
+  try {
+    const observed = await at.observe(3000);
+    const upload = observed.actions.find((a) => a.kind === 'upload' && a.label.startsWith('Upload Files'))!;
+    assert.match(upload.label, /opens a file picker/);
+    assert.ok(!observed.actions.some((a) => a.kind === 'upload' && a.label.startsWith('Cancel')), 'a control that cancels an upload is never an upload target');
+    assert.equal(await at.act(upload, undefined, file), 'upload via file picker');
+    assert.deepEqual(await at.page.evaluate(() => (window as any).uploaded), ['Invoice_Template_v6.22.docx']);
+    const dialog = (await at.observe(3000)).actions.find((a) => a.kind === 'upload' && a.label.startsWith('Upload New Version'))!;
+    assert.equal(await at.act(dialog, undefined, file), 'click (no file picker opened)', 'a button that opens a dialog is reported as a click');
+  } finally {
+    await at.close();
+  }
+});
+
+test('going round in circles through the same links is refused, then ends the run', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = join(folder, 'circle.html');
+  const go = (tag: string) => `document.getElementById('o').textContent='${tag}'+Math.random()`;
+  await writeFile(page, `<!doctype html><title>Circle</title><p id="o"></p><button onclick="${go('A')}">App Launcher</button><button onclick="${go('B')}">Conga Templates</button><button onclick="${go('C')}">CMT-00020</button>`);
+  const at = await PlaywrightBrowser.open(pathToFileURL(page).href, { headless: true });
+  try {
+    const labels = ['App Launcher', 'Conga Templates', 'CMT-00020'];
+    const script: [string, string | null][] = Array.from({ length: 16 }, (_, i) => ['CLICK', labels[i % 3]]);
+    const post = scripted(script, []);
+    const result = await run(at, 'Upload the template', {
+      allowedHosts: null,
+      choose: (p, g, h) => choose(p, g, h, { apiKey: 'offline', post }),
+    });
+    assert.match(result.status, /going round in circles/);
+    assert.equal(result.actions, 9, 'each label three times, then the circle is refused');
+  } finally {
+    await at.close();
+  }
+});
+
+test('when stuck, ideas from a look at the page reach Jev as suggestions, and Jev still chooses', async (t) => {
+  if (!browser) return t.skip(unavailable);
+  const page = join(folder, 'ideas.html');
+  await writeFile(page, `<!doctype html><title>File</title><p id="o"></p><button onclick="document.getElementById('o').textContent='menu open'">Show More</button>`);
+  const at = await PlaywrightBrowser.open(pathToFileURL(page).href, { headless: true });
+  try {
+    const requests: any[] = [];
+    const contexts: any[] = [];
+    const result = await run(at, 'Upload a new version of the file', {
+      allowedHosts: null,
+      choose: (p, g, h) => choose(p, g, h, { apiKey: 'offline', post: scripted([['BLOCKED', null], ['CLICK', 'Show More'], ['DONE', null]], requests) }),
+      ideas: async (context) => {
+        contexts.push(context);
+        return ["Open 'Show More': the new version option may be in that menu."];
+      },
+    });
+    assert.equal(result.status, 'done');
+    assert.equal(contexts.length, 1, 'asked once, on the BLOCKED');
+    assert.ok(contexts[0].controls.includes('Show More'), 'the ideas are drawn from the controls on the page');
+    assert.match(contexts[0].stuck, /no way forward/);
+    const goal = requests[1].questions.operation.instructions.goal;
+    assert.match(goal, /Possible next moves[\s\S]*Open 'Show More'/);
+    assert.ok(!requests[0].questions.operation.instructions.goal.includes('Ideas'), 'no ideas before the run was stuck');
+  } finally {
+    await at.close();
+  }
+});

@@ -1,4 +1,10 @@
-export type Kind = 'click' | 'fill' | 'select' | 'wait';
+export type Kind = 'click' | 'fill' | 'select' | 'upload' | 'wait';
+
+/** A file the operator handed the run. The path stays in code; models only ever see the name. */
+export interface Attachment {
+  name: string;
+  path: string;
+}
 
 /** One executable thing observed on the page. Jev can only ever choose one of these. */
 export interface Action {

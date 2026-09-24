@@ -5,7 +5,9 @@ import { parseArgs } from 'node:util';
 import { audited, setupAuditTrail, type AuditEntry } from './audit.js';
 import { PlaywrightBrowser } from './browser.js';
 import { auditCommand, judgeClaims } from './check.js';
-import { frontdoorUrl } from './org.js';
+import { attachments } from './files.js';
+import { pageIdeas } from './ideas.js';
+import { frontdoorUrl, orgContext } from './org.js';
 import { planGoal, planStep, type Plan } from './planner.js';
 import { SALESFORCE } from './prompts.js';
 import { chooseRecipe, loadRecipes, recipePlan } from './recipes.js';
@@ -19,7 +21,8 @@ const SETUP_HOME = '/lightning/setup/SetupOneHome/home';
 const HELP = `sf-autopilot: hand it a Salesforce org and a manual step.
 
   sf-autopilot run      --org <alias> --step "<the step, as written for a human>"
-  sf-autopilot plan     --step "<the step>"      the plan only; no browser, no org, one LLM call
+  sf-autopilot plan     --step "<the step>" [--org <alias>]   the plan only; no browser, one LLM call (--org lets
+                                                 it read the org's apps, tabs and packages)
   sf-autopilot diagnose --org <alias>            what is observable on the page; no model calls
   sf-autopilot audit    --org <alias> --step "<what should have happened>" [--since 30m|2h|1d] [--by <username>]
                         [--json] [--no-split]    did Salesforce record it? Checks what anyone did, by hand or by
@@ -29,6 +32,9 @@ const HELP = `sf-autopilot: hand it a Salesforce org and a manual step.
 
   -o, --org <alias>       org alias or username known to the Salesforce CLI
   -s, --step <text>       the manual step          --step-file <path>   read it from a file
+      --file <path>       a file the step may upload (repeatable)
+      --files <dir>       offer the files under <dir> that the step names; repeatable, nearest folder first
+                          (e.g. the runbook's own folder, then the repository)
       --raw               skip the planner; give Jev the step exactly as written
       --no-recipes        ignore the recipe library; always plan from scratch
       --candidates        let untested candidate recipes drive a run too (default: verified recipes only)
@@ -36,6 +42,7 @@ const HELP = `sf-autopilot: hand it a Salesforce org and a manual step.
       --confirm           show the plan, then pause before every action
       --allow-destructive act even when the page warns of permanent data loss (default: stop for a human)
       --no-verify         accept Jev's DONE without an LLM review of the page
+      --no-ideas          when stuck, do not ask the LLM what this page offers to try next
       --max-actions <n>   default 25
       --headless          no browser window
       --window <x,y,w,h>  place the visible browser window, in screen points (for watching or recording a run)
@@ -89,6 +96,8 @@ async function main(): Promise<void> {
       org: { type: 'string', short: 'o' },
       step: { type: 'string', short: 's' },
       'step-file': { type: 'string' },
+      file: { type: 'string', multiple: true },
+      files: { type: 'string', multiple: true },
       raw: { type: 'boolean', default: false },
       'no-recipes': { type: 'boolean', default: false },
       candidates: { type: 'boolean', default: false },
@@ -101,6 +110,7 @@ async function main(): Promise<void> {
       confirm: { type: 'boolean', default: false },
       'allow-destructive': { type: 'boolean', default: false },
       'no-verify': { type: 'boolean', default: false },
+      'no-ideas': { type: 'boolean', default: false },
       'max-actions': { type: 'string', default: '25' },
       headless: { type: 'boolean', default: false },
       window: { type: 'string' },
@@ -151,12 +161,14 @@ async function main(): Promise<void> {
   const step = (values['step-file'] ? readFileSync(values['step-file'], 'utf8') : values.step ?? '').trim();
   if (command !== 'diagnose' && !step) throw new Error('Supply --step or --step-file');
   if (command === 'run' && !process.env.TYPESAFE_API_KEY) throw new Error('TYPESAFE_API_KEY is not set');
+  const provided = command === 'diagnose' ? [] : attachments(step, values.file, values.files);
+  if (provided.length && command === 'run') console.log(`Files it may upload: ${provided.map((f) => f.name).join(', ')}\n`);
 
   let plan: Plan | undefined;
   if (command !== 'diagnose' && !values.raw) {
     // A tested procedure beats an invented one. Jev picks it; no confident match means plan from scratch.
     const match = values['no-recipes'] ? null : await chooseRecipe(step, loadRecipes(), { onlyVerified: !values.candidates });
-    plan = match ? recipePlan(match, step) : await planStep(step);
+    plan = match ? recipePlan(match, step) : await planStep(step, {}, provided.map((f) => f.name), values.org ? await orgContext(values.org) : undefined);
     if (command === 'plan') return console.log(JSON.stringify(plan, null, 2));
     if (!plan.executable) {
       console.error(`Not a browser step: ${plan.reason}`);
@@ -194,6 +206,8 @@ async function main(): Promise<void> {
       returnTo: startPath,
       audit: values.org ? async () => fromTrail(claim, await setupAuditTrail(values.org!, began)) : undefined,
       allowDestructive: values['allow-destructive'],
+      files: provided,
+      ideas: values['no-ideas'] ? undefined : (context) => pageIdeas(context),
       verify: values['no-verify'] ? undefined : (page, history) => verifyDone(plan?.doneWhen || step, page, { recentActions: history }),
       maxActions: Number(values['max-actions']),
       log: console.log,

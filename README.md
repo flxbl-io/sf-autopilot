@@ -106,7 +106,7 @@ sandbox: page text is sent to TypeSafe and to your LLM provider.
   are too opaque to prove anything. It is measured, not proven: see the [evaluation](docs/audit-command-evaluation.md).
 - **`run` ending `done (reviewer confirmed)` means two models agree.** `confirmed by the Setup Audit Trail` is
   the stronger ending.
-- Closed shadow roots, canvas, file uploads, drag and drop and keyboard-only widgets are out of reach.
+- Closed shadow roots, canvas, drag and drop and keyboard-only widgets are out of reach. File uploads work only with files the operator provides (`--file`, `--files`).
 - It is not cheap: 65k–105k tokens for a 3–5 action step.
 
 ## Develop

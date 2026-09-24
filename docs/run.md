@@ -28,8 +28,8 @@ manual step ──► recipe, or ──► ┌───────────�
 
 | Part | Job | Why this one |
 | --- | --- | --- |
-| **LLM** (any OpenAI-compatible endpoint; Claude Sonnet by default) | Turns the human step into a plan: where to start, a precise goal, ordered UI actions, what "done" looks like. Writes the value when a field needs typing. Says so when a step is not a browser step. Reviews the page after every click. | Understanding a vague instruction, and judging whether a page proves something, are reasoning tasks. |
-| **[Jev](https://docs.typesafe.ai/introduction)** (TypeSafe) | Chooses every action: which operation (`CLICK`, `TYPE_TEXT`, `SELECT`, `WAIT`, `DONE`, `BLOCKED`) and which observed control. One request returns both. | Not a language model: a [System One model](https://docs.typesafe.ai/concepts/system-one) that returns typed decisions with calibrated probabilities instead of text. It can only pick from controls that exist on the page. |
+| **LLM** (any OpenAI-compatible endpoint; Claude Sonnet by default) | Turns the human step into a plan: where to start, a precise goal, ordered UI actions, what "done" looks like. Writes the value when a field needs typing. Says so when a step is not a browser step. Reviews the page after every click. When the run is stuck, suggests what the current page offers to try. | Understanding a vague instruction, and judging whether a page proves something, are reasoning tasks. |
+| **[Jev](https://docs.typesafe.ai/introduction)** (TypeSafe) | Chooses every action: which operation (`CLICK`, `TYPE_TEXT`, `SELECT`, `UPLOAD_FILE`, `WAIT`, `SCROLL`, `DONE`, `BLOCKED`) and which observed control. One request returns both. | Not a language model: a [System One model](https://docs.typesafe.ai/concepts/system-one) that returns typed decisions with calibrated probabilities instead of text. It can only pick from controls that exist on the page. |
 | **Playwright** | Reads the DOM into an indexed control table and executes the chosen action. | Pierces open shadow roots, handles cross-origin iframes, scrolls targets into view, and hit-tests before clicking. |
 
 Jev never produces a selector, a coordinate, or JavaScript. It has no way to: its answer is an index into a
@@ -80,10 +80,12 @@ More real runs: [samples.md](samples.md).
 | Flag | Meaning |
 | --- | --- |
 | `--step`, `--step-file` | The manual step, as a person wrote it. |
+| `--file`, `--files` | Files the step may upload. `--file` names one (repeatable). `--files <dir>` offers the files under `<dir>` that the step names, by path or name; repeatable, nearest folder first, e.g. the runbook's own folder then the repository. Without either, no upload is ever offered. |
 | `--confirm` | Show the plan, then pause before every action. |
 | `--no-recipes` | Plan from scratch even when a [recipe](recipes.md) matches. `--candidates` lets an untested recipe steer. |
 | `--raw` | Skip the planner and give Jev the step exactly as written. Useful for seeing what the planner is worth. |
 | `--no-verify` | Accept Jev's `DONE` unreviewed. |
+| `--no-ideas` | When stuck, do not ask the LLM what the current page offers to try. |
 | `--allow-destructive` | Continue past a page that warns of permanent data loss. |
 | `--start-path`, `--max-actions` | Where to begin; how many actions at most (default 25). |
 | `--headless`, `--window x,y,w,h`, `--channel`, `--keep-open` | The browser. |
@@ -119,6 +121,18 @@ operation, target, top-3 target probabilities, confidence and latency; a screens
   again, and so on 24 times, never clicking Save. The repeat is now refused and Jev is told why; a second try
   ends the run.
 - One `BLOCKED` is not believed. The loop waits two seconds and looks again; only two in a row end the run.
+- A third click in a row on one control, or the same text typed into one field a third time, is refused; a second
+  refusal ends the run. Seen live: "Timeline Settings" clicked twelve times, "Flows" typed into Quick Find 25 times,
+  each redrawing the page so the no-progress stop never fired. Paging (Next, Show More) is exempt.
+- One Save pressed a third time ends the run for a human: a picklist edit was saved four times over because the
+  reviewer wanted proof that page never shows.
+- A target that stays covered (an open dialog over "Activation...") is explained to Jev after two refusals and
+  ends the run after five, instead of forty requests.
+- `SCROLL` loads more rows of a long list; twenty per run at most.
+- When the run is stuck (a `BLOCKED`, a refused repeat, a covered target, two unsure decisions in a row) the LLM
+  looks at the page it is on and suggests up to three things worth trying, naming controls that are there. Jev
+  reads them as suggestions and still chooses from the table. Nothing about where Salesforce keeps a button is
+  written in advance, so a release that moves one changes the ideas instead of breaking a hint. Six per run at most.
 
 **Clicking safely**
 
@@ -129,6 +143,9 @@ operation, target, top-3 target probabilities, confidence and latency; a screens
 **Secrets**
 
 - Password, file and hidden inputs are never read. A fresh browser context per run: none of your own cookies.
+- A file input is offered by its label only. The file to attach comes from the operator (`--file`, `--files`); a
+  model sees file names, picks one from that list when there are several, and code maps the name to the path.
+  One file is never attached twice to one control in a run.
 - The sign-in URL carries a session. It is never printed, logged, or written to a trace.
 - Signing in is `sf org open --url-only`; no password is ever handled.
 
@@ -156,8 +173,13 @@ operation, target, top-3 target probabilities, confidence and latency; a screens
 | An `<iframe tabindex="0">` looks like a button | frames are never controls |
 | The Setup tree lists every node twice (row + link) | a row wrapping a real link is dropped; the table shrank by about a third |
 | Flow Builder and others opening a new tab | the newest tab is followed |
+| Lightning's synthetic shadow throws on `ShadowRoot.getElementById`; one `aria-labelledby` on a record list failed every observation of the page | the lookup falls back to `querySelector`, then the document |
+| LWC options and buttons draw their words inside their own shadow root, so App Launcher results all read as "option" | an element's name includes its shadow root's text (not a datatable cell's, which would flood the table) |
+| A datatable's read-only checkbox cells read as forty lines of "true: checked" | facts named only by a value are dropped |
+| Long Lightning lists (Flows) draw their first rows and load the rest on scroll | `SCROLL` scrolls the longest scrollable list, or the page |
+| SLDS file selectors clip the real `<input type=file>` to 1px under an "Upload Files" label | the input is offered through whatever is drawn over it, and attached with `setInputFiles` |
 
-Out of reach: closed shadow roots, canvas, file uploads, drag and drop, keyboard-only widgets. The planner can
+Out of reach: closed shadow roots, canvas, drag and drop, keyboard-only widgets. The planner can
 name a Setup page that does not exist; the agent then falls back to Quick Find.
 
 ## The code

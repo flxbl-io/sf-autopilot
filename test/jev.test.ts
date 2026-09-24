@@ -100,6 +100,20 @@ test('an invented target for the chosen operation executes nothing', async () =>
   );
 });
 
+test('one malformed answer is asked again, and a second one still executes nothing', async () => {
+  let calls = 0;
+  const decision = await choose(page(), 'Save', [], {
+    apiKey: 'test',
+    post: async (_url, _key, body: any) => {
+      calls++;
+      const ops = Object.keys(body.questions.operation.criteria);
+      return { model: 'test', answers: calls === 1 ? { operation: { choice: 'NOPE' } } : { operation: answer(ops, 'DONE') } };
+    },
+  });
+  assert.equal(calls, 2);
+  assert.equal(decision.choice, 'DONE');
+});
+
 test('target heads carry control state and name the operation they assume', async () => {
   const p = page();
   p.actions.unshift({ id: 'e0', kind: 'click', label: 'Enable', role: 'checkbox', checked: 'true', node: '0:30' });

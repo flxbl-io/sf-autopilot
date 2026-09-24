@@ -4,11 +4,12 @@ import { postJson } from './http.js';
 import { NEXT_ACTION, TARGET } from './prompts.js';
 import type { Action, ChoiceAnswer, Decision, HistoryEntry, Page, Post } from './types.js';
 
-const OPERATIONS = { click: 'CLICK', fill: 'TYPE_TEXT', select: 'SELECT' } as const;
+const OPERATIONS = { click: 'CLICK', fill: 'TYPE_TEXT', select: 'SELECT', upload: 'UPLOAD_FILE' } as const;
 const LABELS: Record<string, string> = {
   CLICK: 'Click an element, button, menu option, autocomplete suggestion, or calendar day.',
   TYPE_TEXT: 'Enter or replace text in an editable field. A small LLM will supply the value from the goal.',
   SELECT: 'Select an observed dropdown value.',
+  UPLOAD_FILE: 'Attach a file the operator provided to an observed file upload control.',
 };
 const STATE_KEYS = ['role', 'checked', 'selected', 'expanded'] as const;
 
@@ -142,6 +143,9 @@ export async function choose(
     try {
       return await chooseFrom({ ...page, actions }, goal, history, options);
     } catch (error) {
+      // A malformed answer executed nothing, so asking once more is safe. Seen live: one bad reply ended a run
+      // ten good actions into deactivating nine workflow rules.
+      if (/Invalid TypeSafe response/.test((error as Error).message)) return chooseFrom({ ...page, actions }, goal, history, options);
       if (keep === 60 || !/max_tokens_exceeded/.test((error as Error).message)) throw error;
     }
   }
